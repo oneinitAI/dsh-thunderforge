@@ -30,13 +30,24 @@
 | 🔍 **thunderforge-debugger** | Model tool | Dual-source trajectory waterfall: session logs × capture payloads aligned by the millisecond |
 | 🧰 **thunderforge-profile** | Model tool | Profile management + one-shot dev presets (only ever creates new dirs — never touches your existing setups) |
 
-## 🚀 Quick Start
+## 🚀 Installation
 
 ```bash
-dsh plugin add github:oneinitAI/dsh-thunderforge
-# or from npm
-dsh plugin add dsh-thunderforge
+# from npm (recommended)
+dsh plugin --profile <profile> add dsh-thunderforge
+# or from GitHub
+dsh plugin --profile <profile> add github:oneinitAI/dsh-thunderforge
+# or a local directory (developers)
+dsh plugin --profile <profile> add /path/to/dsh-thunderforge
 ```
+
+**Restart the target app** after installing (profiles compose at boot; for web, restart `dsh web`), then verify:
+
+```bash
+dsh --profile <profile> --dump-config    # should show a "# == dsh-thunderforge" layer
+```
+
+Removal is always reversible: `dsh plugin --profile <profile> remove dsh-thunderforge`
 
 Then just tell your agent:
 

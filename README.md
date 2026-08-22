@@ -30,13 +30,24 @@
 | 🔍 **thunderforge-debugger** | 模型工具 | 双数据源轨迹瀑布：会话日志 × capture 载荷按毫秒对齐 |
 | 🧰 **thunderforge-profile** | 模型工具 | profile 管理 + 一键 dev preset（只新建、绝不碰既有环境） |
 
-## 🚀 上手
+## 🚀 安装
 
 ```bash
-dsh plugin add github:oneinitAI/dsh-thunderforge
-# 或 npm
-dsh plugin add dsh-thunderforge
+# 从 npm（推荐）
+dsh plugin --profile <profile名> add dsh-thunderforge
+# 或从 GitHub
+dsh plugin --profile <profile名> add github:oneinitAI/dsh-thunderforge
+# 或本地目录（开发者）
+dsh plugin --profile <profile名> add /path/to/dsh-thunderforge
 ```
+
+装完**重启对应应用**（profile 在启动时组合；web 即重启 `dsh web`），然后验证：
+
+```bash
+dsh --profile <profile名> --dump-config    # 应出现 "# == dsh-thunderforge" 层
+```
+
+移除随时可逆：`dsh plugin --profile <profile名> remove dsh-thunderforge`
 
 装好之后，对你的 agent 说：
 
