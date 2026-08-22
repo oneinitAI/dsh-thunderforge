@@ -1,0 +1,10 @@
+# ThunderForge bundle 层：列出本包贡献的插件行。
+# 按包名子路径引用（Node 模块解析）；调试器（M3）在此追加。
+# 层序提示：thunderforge-capture 需先于提供 LLM 适配器的行应用，才能包装其注册。
+- insert:
+    - id: thunderforge-capture
+      name: dsh-thunderforge/capture
+    - id: thunderforge-skills
+      name: dsh-thunderforge/skills
+    - id: thunderforge-scaffold
+      name: dsh-thunderforge/scaffold

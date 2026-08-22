@@ -1,0 +1,5 @@
+node_modules/
+.thunderforge-capture/
+payloads/
+*.log
+.DS_Store
