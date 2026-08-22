@@ -48,6 +48,8 @@ test('buddy 为用户画像自适应模式（无预设话术）', () => {
   assert.ok(skill.body.includes('每轮') || skill.body.includes('实时'), '画像必须持续更新')
   assert.ok(skill.body.includes('who is JSON'), '保留轻梗彩蛋')
   assert.ok(skill.body.includes('高估'), '拿不准时宁可略高估')
+  assert.ok(skill.body.includes('装唐'), '应含言行冲突检测条款')
+  assert.ok(skill.body.includes('以行为为准'), '冲突时以行为为准')
   assert.ok(!skill.body.includes('| 术语 |'), '不得包含预设术语对照表')
 })
 
