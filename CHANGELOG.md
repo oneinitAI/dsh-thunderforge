@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.1.2 (2026-08-22)
+## 0.1.3 (2026-08-22)
+
+- **修复 capture 层序盲区（真 bug）**：`llm-deepseek` 适配器行位于 dsh-base 层内部，thunderforge 排在其后时 capture 包装落空、静默不捕获。修复：dev preset 与文档改为将 `dsh-thunderforge` 置于 `dsh.profile.bundles` 最前（响应式注入恰好在适配器行之前挂上补丁）；README/入口技能加层序提示；capture 挂载时输出确认日志
+- npm 元数据补全（repository/bugs/homepage）、本文件（CHANGELOG）建立、仓库 topics 设置
+- **dsh-buddy 0.2.1**：装唐检测——自述水平与操作表现冲突时以行为为准，错位反复出现可温和拷问一次（"你是在装唐？"）
+- 仓库工程：抗网络推送器 `scripts/github-push.mjs`（git 优先、API 降级、sha 增量复用、TLS 自重生、分歧保护）、一键发布 `scripts/release.mjs`、网络手册 `docs/NETWORK-NOTES.md`
+
+## 0.1.2 (2026-08-22, git only — 未单独发布，变更并入 0.1.3)
 
 - **dsh-buddy 0.2.1**：装唐检测——自述水平与操作表现冲突时以行为为准，错位反复出现可温和拷问一次（"你是在装唐？"），认了即按真实水平切换，不认则尊重用户节奏；单次错位仍按跨域新手处理
 - 仓库工程：抗网络推送器 `scripts/github-push.mjs`（git 优先、API 降级、sha 增量复用、TLS 自重生、分歧保护）、一键发布 `scripts/release.mjs`、网络手册 `docs/NETWORK-NOTES.md`
