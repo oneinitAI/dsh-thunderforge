@@ -1,6 +1,13 @@
-# LICENSES — 上游声明目录
+# LICENSES — 上游声明与致谢台账
 
-ThunderForge 整合的上游组件在此保留各自的版权声明与许可证文本。
+> **协议承诺**：ThunderForge 尊重并严格遵守所有上游仓库的开源协议。全部 vendor 文件未修改实现（仅前置来源声明头），
+> 各上游许可证原文随包分发；Apache-2.0 组件按其协议要求文件级保留原协议与 NOTICE；对上游组件的任何权利主张
+> 始终以上游协议原文为准。感谢每一位上游作者——ThunderForge 站在你们的肩膀上。
+>
+> **License commitment**: ThunderForge strictly respects every upstream license. All vendored files are unmodified
+> (provenance header only); upstream license texts ship with the package. Our thanks to all upstream authors.
+
+整合的上游组件在此保留各自的版权声明与许可证文本。
 引入方式与状态随里程碑更新；分发时本目录必须随包发布（`files` 已包含）。
 
 | 组件 | 上游 | 许可证 | 引入状态 |

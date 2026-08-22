@@ -19,7 +19,8 @@
     "cordis.patch.yml",
     "LICENSE",
     "LICENSES",
-    "README.md"
+    "README.md",
+    "README.en.md"
   ],
   "engines": {
     "node": ">=22.19.0"
