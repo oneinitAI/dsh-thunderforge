@@ -25,7 +25,9 @@
 | 引擎 | 形态 | 一句话 |
 |---|---|---|
 | ⚡ **thunderforge-capture** | 插件 | LLM 载荷捕获：透明代理 + 密钥掩码 + 轮转 + `index.jsonl` 索引流（清洁室自研） |
-| 🧠 **thunderforge-skills** | 技能 ×3 | 三层知识库：入口索引 + 架构标准 + 坑点手册，agent 写插件时按需加载 |
+| 🧠 **thunderforge-skills** | 技能 ×4 | 四层知识库：入口索引 + 架构标准 + 坑点手册 + **人话模式**（小白问了才解释，不当用户是傻子） |
+
+> 🗣️ **人话模式（thunderforge-buddy）**：用户露出困惑信号（"bundle 是啥" / "第一次玩" / "懵了"）才切换——术语翻译成日常类比，一次一个概念，解释完带他上手做一步；梗每会话只抛一次（first day to vibecoding: who is JSON?）。用户表现专业就立刻闭嘴说正事，**不把用户当傻子**。
 | 🔨 **thunderforge-scaffold** | 模型工具 | 对话式脚手架：三类零依赖模板，**生成即冒烟** |
 | 🔍 **thunderforge-debugger** | 模型工具 | 双数据源轨迹瀑布：会话日志 × capture 载荷按毫秒对齐 |
 | 🧰 **thunderforge-profile** | 模型工具 | profile 管理 + 一键 dev preset（只新建、绝不碰既有环境） |

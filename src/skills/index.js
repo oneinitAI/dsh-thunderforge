@@ -15,6 +15,7 @@ export const Config = Schema.object({
   entryLayer: Schema.boolean().default(true).description('入口索引层 thunderforge-dev'),
   archLayer: Schema.boolean().default(true).description('架构标准层 dsh-plugin-dev'),
   pitfallsLayer: Schema.boolean().default(true).description('坑点手册层 dsh-plugin-guide'),
+  buddyLayer: Schema.boolean().default(true).description('人话模式层 thunderforge-buddy'),
 })
 
 const packageRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))))
@@ -27,6 +28,7 @@ export const LAYERS = [
   { key: 'entry', dir: 'thunderforge-dev', enabledConfig: 'entryLayer' },
   { key: 'arch', dir: 'arch-standard', enabledConfig: 'archLayer' },
   { key: 'pitfalls', dir: 'pitfalls', enabledConfig: 'pitfallsLayer' },
+  { key: 'buddy', dir: 'thunderforge-buddy', enabledConfig: 'buddyLayer' },
 ]
 
 /**

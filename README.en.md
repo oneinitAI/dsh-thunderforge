@@ -25,7 +25,7 @@
 | Engine | Form | In one line |
 |---|---|---|
 | ⚡ **thunderforge-capture** | Plugin | LLM payload capture: transparent proxy + secret redaction + rotation + an `index.jsonl` stream (clean-room implementation) |
-| 🧠 **thunderforge-skills** | Skill ×3 | Three-layer knowledge base: entry index + architecture standard + pitfalls handbook, loaded on demand |
+| 🧠 **thunderforge-skills** | Skill ×4 | Four-layer knowledge base: entry index + architecture standard + pitfalls handbook + **plain-talk buddy mode** (explains jargon only when the user shows confusion — never condescends) |
 | 🔨 **thunderforge-scaffold** | Model tool | Conversational scaffolder: three zero-dependency templates, **smoke-tested the moment they're generated** |
 | 🔍 **thunderforge-debugger** | Model tool | Dual-source trajectory waterfall: session logs × capture payloads aligned by the millisecond |
 | 🧰 **thunderforge-profile** | Model tool | Profile management + one-shot dev presets (only ever creates new dirs — never touches your existing setups) |
@@ -75,7 +75,7 @@ AI:  (thunderforge_profile) → tf-dev-demo ready
 
 ## 📦 Status
 
-- ✅ M0–M3 complete; `node --test` 28/28 (including generate-and-smoke for all three templates)
+- ✅ M0–M3 complete; `node --test` passing (including generate-and-smoke for all three templates)
 - ✅ `npm pack` verified: 433 files — sources, knowledge base and licenses in; dev files out
 - 🙋 Live end-to-end (conversation → tool call → capture on disk → aligned waterfall) — try it yourself: `dsh --profile <your-profile> "invoke thunderforge_scaffold ..."`
 

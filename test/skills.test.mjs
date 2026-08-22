@@ -17,13 +17,13 @@ function mockCtx() {
   }
 }
 
-test('注册三层知识库技能（入口/架构标准/坑点手册）', async () => {
+test('注册四层知识库技能（入口/架构标准/坑点手册/人话模式）', async () => {
   const { ctx, registered } = mockCtx()
   apply(ctx)
   assert.equal(pluginName, 'thunderforge-skills')
   assert.deepEqual(
     registered.map((s) => s.name).sort(),
-    ['dsh-plugin-dev', 'dsh-plugin-guide', 'thunderforge-dev'],
+    ['dsh-plugin-dev', 'dsh-plugin-guide', 'thunderforge-buddy', 'thunderforge-dev'],
   )
   for (const skill of registered) {
     assert.ok(skill.description?.length > 20, `${skill.name} 缺少有效 description`)
@@ -36,8 +36,19 @@ test('注册三层知识库技能（入口/架构标准/坑点手册）', async 
 
 test('config 可关闭单个知识层', () => {
   const { ctx, registered } = mockCtx()
-  apply(ctx, { archLayer: false, pitfallsLayer: false })
+  apply(ctx, { archLayer: false, pitfallsLayer: false, buddyLayer: false })
   assert.deepEqual(registered.map((s) => s.name), ['thunderforge-dev'])
+})
+
+test('buddy 人话词典覆盖核心术语且梗只出现一次', () => {
+  const skill = loadSkillDir('thunderforge-buddy')
+  assert.equal(skill.name, 'thunderforge-buddy')
+  for (const term of ['bundle', 'profile', 'manifest', 'JSON', 'payload', 'scaffold', 'skill', 'tool']) {
+    assert.ok(skill.body.includes(term), `词典应覆盖 ${term}`)
+  }
+  assert.ok(skill.body.includes('who is JSON'), '应包含 first-day 梗')
+  assert.ok(skill.body.includes('最多一次'), '梗的使用必须有节制条款')
+  assert.ok(skill.body.includes('不要把用户当傻子'), '必须有不过度解释的保护条款')
 })
 
 test('frontmatter 解析 name/description 并剥离元数据块', () => {
