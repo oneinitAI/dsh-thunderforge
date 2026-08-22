@@ -19,6 +19,10 @@ const run = (cmd, cmdArgs, opts = {}) => {
   return result.stdout?.toString().trim() ?? ''
 }
 
+// Windows 下 npm 是 npm.cmd，spawn 必须经 shell 解析
+const npmRun = (npmArgs, opts = {}) =>
+  run(process.platform === 'win32' ? 'npm.cmd' : 'npm', npmArgs, { shell: process.platform === 'win32', ...opts })
+
 function bump(version) {
   const [major, minor, patch] = version.split('.').map(Number)
   if (bumpKind === 'major') return `${major + 1}.0.0`
@@ -54,13 +58,16 @@ async function main() {
   if (skipPublish) {
     out('ℹ --skip-publish：跳过 npm 发布')
   } else {
-    const whoami = spawnSync('npm', ['whoami'], { encoding: 'utf8' })
+    const whoami = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['whoami'], {
+      encoding: 'utf8',
+      shell: process.platform === 'win32',
+    })
     if (whoami.status !== 0) {
       out('⚠ npm 未登录。已完成：版本提交。剩余手动步骤：')
       out('  npm login && npm publish')
     } else {
       out(`▶ npm publish（账号 ${whoami.stdout.trim()}）…`)
-      run('npm', ['publish'], { inherit: true })
+      npmRun(['publish'], { inherit: true })
     }
   }
 
@@ -72,7 +79,7 @@ async function main() {
   if (!skipPublish) {
     out('▶ 验证 npm registry …')
     for (let i = 0; i < 12; i++) {
-      const tags = JSON.parse(execFileSync('npm', ['view', pkg.name, 'dist-tags', '--json'], { encoding: 'utf8' }))
+      const tags = JSON.parse(npmRun(['view', pkg.name, 'dist-tags', '--json']))
       if (tags.latest === nextVersion) {
         out(`✓ registry 已生效：${pkg.name}@${nextVersion}`)
         out(`用户更新：dsh plugin --profile <名> update ${pkg.name} && 重启对应应用`)
