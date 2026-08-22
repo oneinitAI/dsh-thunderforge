@@ -1,0 +1,27 @@
+{
+  "skill": "dsh-plugin-dev",
+  "methodology": "遵循 Agent Skills《Optimizing skill descriptions》：should_trigger=true 的查询应触发本技能，false 的不应触发。正例覆盖不同措辞/简繁/中英文与隐式提法；负例覆盖无关领域与易混淆近邻（如 Koishi、hooks 配置）。修改 description 后重跑并记录通过率；训练/验证集划分见 evals/README.md。",
+  "queries": [
+    { "query": "帮我写一个 DSH 插件", "should_trigger": true },
+    { "query": "给这个 agent 加一个能读文件的工具", "should_trigger": true },
+    { "query": "我想接一个新的 LLM 提供方，怎么注册适配器", "should_trigger": true },
+    { "query": "怎么在 cordis.yml 里注册插件并传配置", "should_trigger": true },
+    { "query": "dsh插件怎么打包安装", "should_trigger": true },
+    { "query": "我要在 DeepSeek Harness 里加一个提供方可替换的能力", "should_trigger": true },
+    { "query": "写个插件监听 tools/result 事件", "should_trigger": true },
+    { "query": "给 DSH 加个 workspace 包", "should_trigger": true },
+    { "query": "How do I write a DSH plugin?", "should_trigger": true },
+    { "query": "create a tool for my DeepSeek Harness agent", "should_trigger": true },
+    { "query": "register an LLM adapter for a new provider in dsh", "should_trigger": true },
+    { "query": "插件加载后怎么自动清理资源", "should_trigger": true },
+    { "query": "写个 python 脚本处理 csv", "should_trigger": false },
+    { "query": "帮我写一个 koishi 插件", "should_trigger": false },
+    { "query": "今天天气怎么样", "should_trigger": false },
+    { "query": "优化这段 sql 查询", "should_trigger": false },
+    { "query": "帮我配置 claude code 的 hooks 配置文件", "should_trigger": false },
+    { "query": "how to write a chrome extension", "should_trigger": false },
+    { "query": "weather in tokyo", "should_trigger": false },
+    { "query": "set up a GitHub Actions CI workflow", "should_trigger": false },
+    { "query": "帮我翻译这段英文合同", "should_trigger": false }
+  ]
+}

@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest a new pitfall, deep-dive, section, translation fix, or bundle improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What gap or pain point does this address?
+      placeholder: e.g. While developing a plugin I keep searching for the exact event semantics...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should happen after this is implemented (new content, new script, new bundle behavior)?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered (optional)
+      description: Anything you already tried or other ways this could be solved.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context (optional)
+      description: Links, evidence, or anything else that helps.
+    validations:
+      required: false

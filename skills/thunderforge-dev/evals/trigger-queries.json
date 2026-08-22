@@ -1,0 +1,24 @@
+{
+  "skill": "thunderforge-dev",
+  "methodology": "遵循 Agent Skills《Optimizing skill descriptions》：should_trigger=true 的查询应触发本技能（入口层），false 的不应。正例改编自 dsh-plugin-dev / dsh-plugin-guide 两个子技能的评测集并加入 ThunderForge 工具相关查询；负例保留易混淆近邻。修改 description 后重跑并记录通过率。",
+  "queries": [
+    { "query": "帮我写一个 DSH 插件", "should_trigger": true },
+    { "query": "用 thunderforge 生成一个插件骨架", "should_trigger": true },
+    { "query": "给这个 agent 加一个能读文件的工具", "should_trigger": true },
+    { "query": "我想接一个新的 LLM 提供方，怎么注册适配器", "should_trigger": true },
+    { "query": "怎么在 cordis.yml 里注册插件并传配置", "should_trigger": true },
+    { "query": "dsh插件怎么打包安装", "should_trigger": true },
+    { "query": "写个插件监听 tools/result 事件", "should_trigger": true },
+    { "query": "How do I write a DSH plugin?", "should_trigger": true },
+    { "query": "register an LLM adapter for a new provider in dsh", "should_trigger": true },
+    { "query": "我的插件加载后为什么不生效", "should_trigger": true },
+    { "query": "thunderforge-capture 怎么配置掩码", "should_trigger": true },
+    { "query": "帮我审一下这个 DeepSeek Harness 插件的写法对不对", "should_trigger": true },
+    { "query": "写个 python 脚本处理 csv", "should_trigger": false },
+    { "query": "帮我写一个 koishi 插件", "should_trigger": false },
+    { "query": "今天天气怎么样", "should_trigger": false },
+    { "query": "优化这段 sql 查询", "should_trigger": false },
+    { "query": "how to write a chrome extension", "should_trigger": false },
+    { "query": "帮我翻译这段英文合同", "should_trigger": false }
+  ]
+}
