@@ -1,0 +1,24 @@
+# LICENSES — 上游声明目录
+
+ThunderForge 整合的上游组件在此保留各自的版权声明与许可证文本。
+引入方式与状态随里程碑更新；分发时本目录必须随包发布（`files` 已包含）。
+
+| 组件 | 上游 | 许可证 | 引入状态 |
+|---|---|---|---|
+| dsh-plugin-dev-skills | [zimodzh/dsh-plugin-dev-skills](https://github.com/zimodzh/dsh-plugin-dev-skills) | MIT | **已引入** `skills/arch-standard/`（原样 vendor，未修改上游正文；含 examples/、references/、evals/） |
+| dsh-plugin-guide | [PerryLink/dsh-plugin-guide](https://github.com/PerryLink/dsh-plugin-guide) | Apache-2.0 | **已引入** `skills/pitfalls/`（原样 vendor，未修改；上游自带 LICENSE 与 NOTICE.md 保留） |
+| create-dsh-plugin | [whyihaveyou/dsh-suite](https://github.com/whyihaveyou/dsh-suite) | MIT | 不再引入——脚手架模板改为依据 dsh-plugin-dev 规范自研（见下） |
+| dsh-plugin-starter | [ciceroyang/dsh-plugin-starter](https://github.com/ciceroyang/dsh-plugin-starter) | MIT | 不再引入——tests/CI 模板自研 |
+| dsh-trajectory-debug | [devmom/dsh-trajectory-debug](https://github.com/devmom/dsh-trajectory-debug) | MIT | M3 待引入（调试器） |
+| dsh-replay | [zoahdev/dsh-replay](https://github.com/zoahdev/dsh-replay) | MIT | M3 待引入（调试器） |
+| dshp | [asdf17128/dshp](https://github.com/asdf17128/dshp) | MIT | M3 待引入（profile 管理） |
+
+### 自研中的上游参考（文件级声明）
+
+- `src/skills/index.js` 的注册模式（frontmatter 拆分 + `ctx.effect` + `ctx.skills.register` + 目录 resourceBase）参考 dsh-plugin-guide（Apache-2.0）的入口实现改写为多技能注册
+- `src/scaffold/templates.js` 的 tool 模板改写自 dsh-plugin-dev-skills `examples/greet-tool`（MIT）；events/webui 模板依据其 `references/plugin-forms.md` 的规范示例改写为零依赖形态
+
+**明确不引入**：`moeblack/dsh-payload-capture`（无许可证，All Rights Reserved）。
+其功能由本项目清洁室自研的 `thunderforge-capture` 替代，未使用该上游任何代码。
+
+**NOTICE**：各上游组件引入后，凡经 ThunderForge 修改的文件，在文件头注明修改内容与日期。
