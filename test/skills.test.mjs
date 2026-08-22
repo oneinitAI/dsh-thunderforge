@@ -23,7 +23,7 @@ test('注册四层知识库技能（入口/架构标准/坑点手册/人话模�
   assert.equal(pluginName, 'thunderforge-skills')
   assert.deepEqual(
     registered.map((s) => s.name).sort(),
-    ['dsh-plugin-dev', 'dsh-plugin-guide', 'thunderforge-buddy', 'thunderforge-dev'],
+    ['dsh-buddy', 'dsh-plugin-dev', 'dsh-plugin-guide', 'thunderforge-dev'],
   )
   for (const skill of registered) {
     assert.ok(skill.description?.length > 20, `${skill.name} 缺少有效 description`)
@@ -40,15 +40,15 @@ test('config 可关闭单个知识层', () => {
   assert.deepEqual(registered.map((s) => s.name), ['thunderforge-dev'])
 })
 
-test('buddy 人话词典覆盖核心术语且梗只出现一次', () => {
-  const skill = loadSkillDir('thunderforge-buddy')
-  assert.equal(skill.name, 'thunderforge-buddy')
-  for (const term of ['bundle', 'profile', 'manifest', 'JSON', 'payload', 'scaffold', 'skill', 'tool']) {
-    assert.ok(skill.body.includes(term), `词典应覆盖 ${term}`)
-  }
-  assert.ok(skill.body.includes('who is JSON'), '应包含 first-day 梗')
-  assert.ok(skill.body.includes('最多一次'), '梗的使用必须有节制条款')
-  assert.ok(skill.body.includes('不要把用户当傻子'), '必须有不过度解释的保护条款')
+test('buddy 为用户画像自适应模式（无预设话术）', () => {
+  const skill = loadSkillDir('dsh-buddy')
+  assert.equal(skill.name, 'dsh-buddy')
+  assert.ok(skill.body.includes('画像'), '核心是实时用户画像')
+  assert.ok(skill.body.includes('分域'), '必须分域评估（老手也可能是新手）')
+  assert.ok(skill.body.includes('每轮') || skill.body.includes('实时'), '画像必须持续更新')
+  assert.ok(skill.body.includes('who is JSON'), '保留轻梗彩蛋')
+  assert.ok(skill.body.includes('高估'), '拿不准时宁可略高估')
+  assert.ok(!skill.body.includes('| 术语 |'), '不得包含预设术语对照表')
 })
 
 test('frontmatter 解析 name/description 并剥离元数据块', () => {

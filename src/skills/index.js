@@ -28,7 +28,7 @@ export const LAYERS = [
   { key: 'entry', dir: 'thunderforge-dev', enabledConfig: 'entryLayer' },
   { key: 'arch', dir: 'arch-standard', enabledConfig: 'archLayer' },
   { key: 'pitfalls', dir: 'pitfalls', enabledConfig: 'pitfallsLayer' },
-  { key: 'buddy', dir: 'thunderforge-buddy', enabledConfig: 'buddyLayer' },
+  { key: 'buddy', dir: 'dsh-buddy', enabledConfig: 'buddyLayer' },
 ]
 
 /**

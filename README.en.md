@@ -25,7 +25,7 @@
 | Engine | Form | In one line |
 |---|---|---|
 | ⚡ **thunderforge-capture** | Plugin | LLM payload capture: transparent proxy + secret redaction + rotation + an `index.jsonl` stream (clean-room implementation) |
-| 🧠 **thunderforge-skills** | Skill ×4 | Four-layer knowledge base: entry index + architecture standard + pitfalls handbook + **plain-talk buddy mode** (explains jargon only when the user shows confusion — never condescends) |
+| 🧠 **thunderforge-skills** | Skill ×4 | Four-layer knowledge base: entry index + architecture standard + pitfalls handbook + **portrait-adaptive communication** (real-time user profiling matches answer depth; powers [dsh-buddy](https://github.com/oneinitAI/dsh-buddy)) |
 | 🔨 **thunderforge-scaffold** | Model tool | Conversational scaffolder: three zero-dependency templates, **smoke-tested the moment they're generated** |
 | 🔍 **thunderforge-debugger** | Model tool | Dual-source trajectory waterfall: session logs × capture payloads aligned by the millisecond |
 | 🧰 **thunderforge-profile** | Model tool | Profile management + one-shot dev presets (only ever creates new dirs — never touches your existing setups) |

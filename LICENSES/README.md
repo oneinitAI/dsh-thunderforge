@@ -19,6 +19,7 @@
 | dsh-trajectory-debug | [devmom/dsh-trajectory-debug](https://github.com/devmom/dsh-trajectory-debug) | MIT | 未 vendor（Web UI 宿主形态与本套件模型工具形态不匹配）；瀑布/断点概念参考，实现自研 |
 | dsh-replay | [zoahdev/dsh-replay](https://github.com/zoahdev/dsh-replay) | MIT | **已引入** `src/debugger/session-log.js`（原样 vendor，仅前置来源声明头） |
 | dshp | [asdf17128/dshp](https://github.com/asdf17128/dshp) | MIT | **已引入** `src/profile/dshp/`（原样 vendor，仅前置来源声明头；其"写操作保护既有环境"原则在 dev preset 中沿用） |
+| dsh-buddy | [oneinitAI/dsh-buddy](https://github.com/oneinitAI/dsh-buddy) | MIT | **已引入** `skills/dsh-buddy/`（本项目作者同源仓库，原样 vendor；用户画像自适应表达技能） |
 
 ### 自研中的上游参考（文件级声明）
 
