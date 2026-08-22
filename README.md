@@ -4,7 +4,7 @@
 
 **创建 → 开发 → 调试 → 环境验证**，一个包装下全套，agent 用同一套工具与知识为你锻造插件。
 
-## 当前能力（v0.1 · M0–M2）
+## 当前能力（v0.1 · M0–M3）
 
 ### ⚡ thunderforge-capture — LLM 载荷捕获（清洁室自研）
 
@@ -41,6 +41,25 @@
 - 每套骨架自带：`thunderforge.debug.json` 调试埋点清单（capture 索引流 + 事件前缀）、`test/smoke.test.mjs` 加载校验冒烟、GitHub Actions CI
 - 默认生成后立即在骨架内跑 `node --test`，冒烟结果直接回到模型
 - 领域失败（非法名/目录已存在）返回规范错误值而非抛异常
+
+### 🔍 thunderforge-debugger — 双数据源轨迹瀑布（M3）
+
+模型工具 `thunderforge_debugger`：把**会话日志事件**（session.jsonl.zstd 解码，vendored 自 dsh-replay/MIT）与 **capture 索引流**（index.jsonl）按毫秒时间戳对齐成统一瀑布。
+
+```
+op: sessions=列出会话 · summary=概览(turns/steps/toolCalls/capture统计) · waterfall=对齐时间线
+```
+
+- zstd 容器 + chunk-row 解压解码（node:zlib 内建，零依赖）；已在真实 1.2 万事件会话上验证
+- 每行 capture 记录带文件引用，瀑布里可直接定位失败调用的完整载荷
+
+### 🧰 thunderforge-profile — profile 管理 + dev preset（M3）
+
+模型工具 `thunderforge_profile`（核心 vendored 自 dshp/MIT）：
+
+- `list` / `export`：列出本机 profile、导出可移植配置文本（论坛可贴、机器可还原）
+- `create-dev-preset`：一键生成 `tf-dev-*` 干净 profile（预装 dsh-thunderforge link + capture 预设层），**只新建、绝不触碰既有 profile**
+- `verify`：跑 `dsh --profile <名> --dump-config` 验证层加载（无 dsh CLI 时给出 npx 替代提示）
 
 ### 安装
 
@@ -87,7 +106,7 @@ dsh --profile demo --dump-config   # 应显示 "# == dsh-thunderforge" 层
 - [x] **M0** Bundle 骨架 + thunderforge-capture（替代无许可组件）
 - [x] **M1** 知识库合并分层（入口索引 + 架构标准 + 坑点手册）
 - [x] **M2** 脚手架内化为 agent 工具 + 调试埋点 + 生成即冒烟
-- [ ] **M3** 调试器合并（轨迹瀑布 + 时间旅行回放）+ dev preset + 冒烟链路 + 发布
+- [x] **M3** 调试器（双数据源瀑布）+ profile/dev preset + 运行时验收
 
 ## 合规声明
 

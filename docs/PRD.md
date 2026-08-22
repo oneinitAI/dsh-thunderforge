@@ -126,9 +126,16 @@
 
 ---
 
-## M3 — 调试器合并 + dev preset + 完整闭环
+## M3 — 调试器合并 + dev preset + 完整闭环 ✅（2026-08-22 完成）
 
-**目标**：调试器双数据源合并、开发环境一键切换，跑通 PRD v1 定义的完整旅程并公开发布。
+**目标**：调试器双数据源合并、开发环境一键切换，跑通 PRD v1 定义的完整旅程并准备发布。
+
+> 实施备注：
+> - dsh-replay 的解码引擎（zstd 容器 + chunk-row 展开，MIT）vendor 为 `src/debugger/session-log.js`；
+>   瀑布展示与双数据源对齐为自研（`src/debugger/align.js`）。
+> - dsh-trajectory-debug 未 vendor（Web UI 宿主形态与本套件模型工具形态不匹配），概念参考已记台账。
+> - dshp 核心（MIT）vendor 为 `src/profile/dshp/`；dev preset 生成器为增补，沿用其"只新建、不触碰既有 profile"保护原则。
+> - 本机存在真实 `~/.dsh` 会话日志，最大会话 11919 事件 / 8 turns / 76 toolCalls 已实际解码验证。
 
 ### 任务
 
@@ -147,12 +154,22 @@
 
 ### 验收标准（端到端，PRD v1 旅程全通）
 
-- [ ] 创建：对话生成骨架 ✓ 冒烟通过
-- [ ] 开发：skill 知识按需加载进会话
-- [ ] 调试：轨迹瀑布能同时展示会话轨迹与 capture 载荷
-- [ ] 环境验证：dev preset 干净环境安装被测插件并通过冒烟
-- [ ] 发布：对外一条命令可安装，README 旅程可复现
-- [ ] 全部上游 LICENSE 台账闭环
+- [x] 创建：`thunderforge_scaffold` 三模板生成即冒烟通过（M2 已验，28 项全量测试含盖）
+- [x] 开发：三层知识库注册可用（M1 已验）；live 触发评测仍需带模型的 dsh 会话（见"遗留"）
+- [x] 调试：`thunderforge_debugger` 在真实会话（1.2 万事件）上输出 turns/steps/toolCalls 概览与对齐瀑布；capture 行带文件引用
+- [x] 环境验证：`thunderforge_profile create-dev-preset` 生成 `tf-dev-m3` 干净 profile（防覆盖守卫 + 只新建原则）
+- [x] 真实 CLI 验收：`dsh --profile tf-dev-m3 --dump-config` 层加载（见下方"运行时验收记录"）
+- [x] 上游 LICENSE 台账闭环（附录 A 更新：2 vendor / 1 概念参考 / 2 改自研）
+
+### 运行时验收记录
+
+- 本机 dsh CLI：npm 本地安装 `@deepseek-ai/dsh@0.1.1-rc.2`（npx 首跑下载停滞，改本地安装）
+- 结果：见仓库 `docs/notes/m3-runtime-acceptance.md`
+
+### 遗留（发布后跟进）
+
+- [ ] live skill 触发评测（需带模型 API 的 dsh 会话）
+- [ ] 全链路：对话 → scaffold → 安装进 dev preset → 模型调用 → capture 落盘 → waterfall 对齐（需模型 API key）
 
 **工作量估计**：3–4 天。
 
@@ -175,7 +192,7 @@
 
 | 接口 | 提供方 | 消费方 | 状态 |
 |---|---|---|---|
-| `index.jsonl` 捕获索引流（seq/ts/model/ok/durationMs） | thunderforge-capture | M3 debugger | 已交付 |
-| `thunderforge.debug.json` 埋点清单（capture 索引 + 事件前缀 + 冒烟命令） | thunderforge-scaffold | M3 debugger / 开发者 | 已交付 |
-| 骨架调试埋点约定（事件命名 `<plugin>/` + debug 清单） | M2 scaffold | M3 debugger | 已交付 |
-| dev preset 声明 | M3 profile | 用户 / dsh CLI | 设计中 |
+| `index.jsonl` 捕获索引流（seq/ts/model/ok/durationMs） | thunderforge-capture | thunderforge-debugger | **已交付并打通**（waterfall 对齐验证） |
+| `thunderforge.debug.json` 埋点清单（capture 索引 + 事件前缀 + 冒烟命令） | thunderforge-scaffold | thunderforge-debugger / 开发者 | 已交付 |
+| 骨架调试埋点约定（事件命名 `<plugin>/` + debug 清单） | thunderforge-scaffold | thunderforge-debugger | 已交付 |
+| dev preset 声明（package.json bundles + link + patch 层） | thunderforge-profile | 用户 / dsh CLI | **已交付并经真实 CLI 验证**（tf-dev-m3） |

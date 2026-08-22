@@ -8,3 +8,7 @@
       name: dsh-thunderforge/skills
     - id: thunderforge-scaffold
       name: dsh-thunderforge/scaffold
+    - id: thunderforge-debugger
+      name: dsh-thunderforge/debugger
+    - id: thunderforge-profile
+      name: dsh-thunderforge/profile

@@ -9,7 +9,9 @@
     ".": "./src/capture/index.js",
     "./capture": "./src/capture/index.js",
     "./skills": "./src/skills/index.js",
-    "./scaffold": "./src/scaffold/index.js"
+    "./scaffold": "./src/scaffold/index.js",
+    "./debugger": "./src/debugger/index.js",
+    "./profile": "./src/profile/index.js"
   },
   "files": [
     "src",

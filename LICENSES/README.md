@@ -9,9 +9,9 @@ ThunderForge 整合的上游组件在此保留各自的版权声明与许可证�
 | dsh-plugin-guide | [PerryLink/dsh-plugin-guide](https://github.com/PerryLink/dsh-plugin-guide) | Apache-2.0 | **已引入** `skills/pitfalls/`（原样 vendor，未修改；上游自带 LICENSE 与 NOTICE.md 保留） |
 | create-dsh-plugin | [whyihaveyou/dsh-suite](https://github.com/whyihaveyou/dsh-suite) | MIT | 不再引入——脚手架模板改为依据 dsh-plugin-dev 规范自研（见下） |
 | dsh-plugin-starter | [ciceroyang/dsh-plugin-starter](https://github.com/ciceroyang/dsh-plugin-starter) | MIT | 不再引入——tests/CI 模板自研 |
-| dsh-trajectory-debug | [devmom/dsh-trajectory-debug](https://github.com/devmom/dsh-trajectory-debug) | MIT | M3 待引入（调试器） |
-| dsh-replay | [zoahdev/dsh-replay](https://github.com/zoahdev/dsh-replay) | MIT | M3 待引入（调试器） |
-| dshp | [asdf17128/dshp](https://github.com/asdf17128/dshp) | MIT | M3 待引入（profile 管理） |
+| dsh-trajectory-debug | [devmom/dsh-trajectory-debug](https://github.com/devmom/dsh-trajectory-debug) | MIT | 未 vendor（Web UI 宿主形态与本套件模型工具形态不匹配）；瀑布/断点概念参考，实现自研 |
+| dsh-replay | [zoahdev/dsh-replay](https://github.com/zoahdev/dsh-replay) | MIT | **已引入** `src/debugger/session-log.js`（原样 vendor，仅前置来源声明头） |
+| dshp | [asdf17128/dshp](https://github.com/asdf17128/dshp) | MIT | **已引入** `src/profile/dshp/`（原样 vendor，仅前置来源声明头；其"写操作保护既有环境"原则在 dev preset 中沿用） |
 
 ### 自研中的上游参考（文件级声明）
 
