@@ -15,21 +15,24 @@
 
 ## 发布步骤（维护者执行）
 
+**一键发布**（推荐，含抗网络推送与 registry 验证）：
+
 ```bash
-# 1. 最终检查
-node --test && npm pack --dry-run
-
-# 2. 发布到 npm（首次发布后即可 dsh plugin add npm:dsh-thunderforge）
-npm publish            # 公开包；确认 npm whoami 已登录
-
-# 3. 推送 GitHub（创建公开仓库 dsh-thunderforge 后）
-git remote add origin git@github.com:<user>/dsh-thunderforge.git
-git push -u origin main
-
-# 4. 安装方式验证（换一台机器或删掉 link 后）
-dsh plugin add github:<user>/dsh-thunderforge
-dsh --dump-config | grep -A6 'dsh-thunderforge'
+node scripts/release.mjs patch          # bump → 测试 → npm publish → 推送 → 验证
+node scripts/release.mjs patch --dry-run # 只看计划
 ```
+
+未登录 npm 时脚本会完成 bump/提交/推送并明确列出剩余的手动两步（`npm login && npm publish`）。
+
+**手动路径**（等价）：
+
+```bash
+node --test && npm pack --dry-run
+npm publish
+git push                                # 网络被掐时: node scripts/github-push.mjs
+```
+
+网络问题（443 重置 / TLS 拦截 / 大包安装慢 / peer 警告）的原理与对策见 [`NETWORK-NOTES.md`](./NETWORK-NOTES.md)。
 
 ## 发布后跟进（PRD 遗留项）
 
