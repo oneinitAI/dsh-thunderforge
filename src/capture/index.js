@@ -55,7 +55,7 @@ export function apply(ctx, userConfig = {}) {
 
   const llm = ctx?.llm
   if (!llm || typeof llm.registerAdapter !== 'function') {
-    logger.warn?.(`${name}: llm 服务未注入，捕获未启用（请检查层序：本行需先于 LLM 适配器所在层应用）`)
+    logger.warn?.(`${name}: llm 服务未注入，捕获未启用`)
     return
   }
 
@@ -68,6 +68,10 @@ export function apply(ctx, userConfig = {}) {
     return original.call(this, providerArg, wrapAdapter(adapter, providers, store))
   }
   llm.registerAdapter = patched
+  // 提示已错过的注册：llm 服务公开 API 无法枚举已注册适配器（私有 Map），
+  // 若本插件应用晚于适配器注册（如整个 bundle 位于 dsh-base 之后），包装会落空。
+  // 已知对策：把 dsh-thunderforge 移到 profile 的 dsh.profile.bundles 数组最前。
+  logger.info?.(`${name}: 已挂载注册包装（对后续注册生效）`)
 
   // HMR/卸载时恢复原方法，避免补丁跨 fiber 泄漏
   ctx?.on?.('dispose', () => {

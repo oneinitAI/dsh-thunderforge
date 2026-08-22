@@ -100,7 +100,9 @@ export function apply(ctx) {
           }
           writeProfile({
             name: profileName,
-            bundles: ['@deepseek-ai/dsh-base', 'dsh-thunderforge'],
+            // thunderforge 放最前：capture 需先于 base 内的 LLM 适配器行应用才能包装注册
+            //（cordis 响应式注入会在 llm 服务就绪后立即 patch，赶在适配器行之前）
+            bundles: ['dsh-thunderforge', '@deepseek-ai/dsh-base'],
             plugins: { 'dsh-thunderforge': `link:${packageRoot}` },
             patch: PRESET_PATCH,
           })

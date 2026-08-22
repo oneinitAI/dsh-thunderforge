@@ -32,8 +32,13 @@ metadata:
 
 | 能力 | 形态 | 说明 |
 |---|---|---|
-| `thunderforge_scaffold` | 模型工具 | 生成带埋点的插件骨架 |
+| `thunderforge_scaffold` | 模型工具 | 生成带埋点的插件骨架（tool/events/webui） |
+| `thunderforge_debugger` | 模型工具 | 会话轨迹瀑布/概览，与 capture 索引对齐 |
+| `thunderforge_profile` | 模型工具 | profile 列出/导出/dev preset/启动验证 |
 | thunderforge-capture | 插件 | LLM 载荷捕获（密钥掩码、轮转、index.jsonl） |
+| dsh-buddy | 技能 | 用户画像自适应表达（详见其自身技能） |
+
+**capture 层序**：thunderforge 需在 profile 的 `dsh.profile.bundles` 里排在 `@deepseek-ai/dsh-base` **之前**，capture 才能包装 base 内 LLM 适配器的注册（llm 服务无法枚举已注册适配器，晚到即落空）。
 
 ## 硬规则（与 dsh-plugin-dev 一致，违反必翻车）
 

@@ -68,7 +68,8 @@ test('create-dev-preset 生成完整 profile 且防覆盖', async () => {
     await access(join(out.dir, 'package.json'))
     await access(join(out.dir, 'cordis.patch.yml'))
     const pkg = JSON.parse(await (await import('node:fs/promises')).readFile(join(out.dir, 'package.json'), 'utf8'))
-    assert.deepEqual(pkg.dsh.profile.bundles, ['@deepseek-ai/dsh-base', 'dsh-thunderforge'])
+    // 层序：thunderforge 必须在最前，capture 才能先于 base 内的 LLM 适配器行应用
+    assert.deepEqual(pkg.dsh.profile.bundles, ['dsh-thunderforge', '@deepseek-ai/dsh-base'])
     assert.ok(pkg.dependencies['dsh-thunderforge'].startsWith('link:'))
     assert.ok(out.nextSteps.join('\n').includes('--dump-config'))
     assert.ok(out.nextSteps.join('\n').includes('F:/x/under-test') || out.nextSteps.join('\n').includes('F:\\x\\under-test'))

@@ -73,9 +73,18 @@ test('入口技能评测集完整且正负例齐备', async () => {
   assert.ok(negatives.length >= 6, `负例应不少于 6，实际 ${negatives.length}`)
 })
 
-test('入口技能正文索引到两个知识层与锻造工具', () => {
+test('入口技能正文索引到全部工具与知识层', () => {
   const skill = loadSkillDir('thunderforge-dev')
-  for (const keyword of ['dsh-plugin-dev', 'dsh-plugin-guide', 'thunderforge_scaffold', 'thunderforge-capture']) {
+  for (const keyword of [
+    'dsh-plugin-dev',
+    'dsh-plugin-guide',
+    'dsh-buddy',
+    'thunderforge_scaffold',
+    'thunderforge_debugger',
+    'thunderforge_profile',
+    'thunderforge-capture',
+  ]) {
     assert.ok(skill.body.includes(keyword), `入口技能应索引 ${keyword}`)
   }
+  assert.ok(skill.body.includes('之前'), '应含 capture 层序提示')
 })

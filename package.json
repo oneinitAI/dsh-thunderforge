@@ -4,6 +4,15 @@
   "description": "ThunderForge · 宇宙无敌雷霆霹雳炫光 DSH 插件锻造炉 — 一站式 DSH 插件开发套件（单一 Bundle）",
   "type": "module",
   "license": "MIT",
+  "author": "ThunderForge Contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oneinitAI/dsh-thunderforge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/oneinitAI/dsh-thunderforge/issues"
+  },
+  "homepage": "https://github.com/oneinitAI/dsh-thunderforge#readme",
   "main": "./src/capture/index.js",
   "exports": {
     ".": "./src/capture/index.js",

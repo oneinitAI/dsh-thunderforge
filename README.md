@@ -51,6 +51,8 @@ dsh --profile <profile名> --dump-config    # 应出现 "# == dsh-thunderforge" 
 
 移除随时可逆：`dsh plugin --profile <profile名> remove dsh-thunderforge`
 
+> ⚠️ **层序提示（capture 生效的关键）**：装进**已有** profile 后，请把 `dsh-thunderforge` 挪到该 profile `package.json` 的 `dsh.profile.bundles` 数组**最前**（先于 `@deepseek-ai/dsh-base`）——capture 靠包装适配器注册工作，晚于 base 内适配器行应用就会静默落空。经 `thunderforge_profile` 生成的 dev preset 已自动排好。
+
 装好之后，对你的 agent 说：
 
 > 帮我建一个带 webui 的 DSH 插件 —— 它会调用 `thunderforge_scaffold`，骨架自带调试埋点与冒烟测试，生成即验证。
