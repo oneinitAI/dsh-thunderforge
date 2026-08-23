@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4 (2026-08-23)
+
+- **新口号**：励志做（字号小到免责）**0 元以内最 nb 的 DSH 插件\***（h1 全页最大）——注\* 为产品目标，非质量承诺，解释权归雷雨天气；ThunderForge 本名降级为 h3 陪衬
+- README 修复：dsh-buddy 引用块移出引擎表格（此前表格渲染破碎）；中英双语同步
+
 ## 0.1.3 (2026-08-22)
 
 - **修复 capture 层序盲区（真 bug）**：`llm-deepseek` 适配器行位于 dsh-base 层内部，thunderforge 排在其后时 capture 包装落空、静默不捕获。修复：dev preset 与文档改为将 `dsh-thunderforge` 置于 `dsh.profile.bundles` 最前（响应式注入恰好在适配器行之前挂上补丁）；README/入口技能加层序提示；capture 挂载时输出确认日志
