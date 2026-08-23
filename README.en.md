@@ -16,6 +16,12 @@
 
 **Create → Develop → Debug → Verify → Ship** — one `dsh plugin add`, the whole forge lights up ⚡
 
+<sub>Keep dreaming — lightning might just pick you</sub>
+
+**The best DSH plugin money can't buy\***
+
+<sub>*"The best DSH plugin under ¥0" is a product goal, not a quality guarantee; final interpretation belongs to the thunder</sub>
+
 </div>
 
 ---
