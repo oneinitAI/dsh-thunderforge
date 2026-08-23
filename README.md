@@ -1,11 +1,12 @@
 <div align="center">
 
-# ⚡ ThunderForge
+### ⚡ ThunderForge
 
-<p>
-  <sub><sub>励志做</sub></sub> <strong>0 元以内最 nb 的 DSH 插件</strong><sup>*</sup><br>
-  <sub><sub>注*：「0 元以内最 nb 的 DSH 插件」为产品目标，非质量承诺，亦不暗示"已 nb""正在 nb"或"即将 nb"。"0 元以内"指本插件定价区间，不代表 0.01 元档位存在竞品。解释权归雷雨天气。</sub></sub>
-</p>
+<sub><sub><sub>励志做</sub></sub></sub>
+
+# 0 元以内最 nb 的 DSH 插件<sup>\*</sup>
+
+<sub><sub><sub>注*：「0 元以内最 nb 的 DSH 插件」为产品目标，非质量承诺，亦不暗示"已 nb""正在 nb"或"即将 nb"。"0 元以内"指本插件定价区间，不代表 0.01 元档位存在竞品。解释权归雷雨天气。</sub></sub></sub>
 
 **一站式 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness) 插件开发套件 · 单一 Bundle**
 
