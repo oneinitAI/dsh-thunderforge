@@ -24,6 +24,10 @@ test('插件注册 thunderforge_scaffold 工具且 schema 合规', () => {
   assert.deepEqual(tool.parameters.properties.template.enum, [...TEMPLATES])
   assert.equal(tool.parameters.additionalProperties, false)
   assert.equal(typeof tool.execute, 'function')
+  // 真机教训（0.1.6）：raw 注册必须带 output，且 schema.type 不接受 'json'
+  assert.equal(tool.output.schema.type, 'object')
+  assert.equal(typeof tool.output.render, 'function')
+  assert.ok(Array.isArray(tool.output.render(null, { status: 'ok', path: '/x', files: [], verify: { ran: false } })))
 })
 
 test('非法插件名返回规范错误值而非抛异常', async () => {

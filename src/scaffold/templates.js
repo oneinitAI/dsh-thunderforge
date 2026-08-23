@@ -126,6 +126,11 @@ export function apply(ctx) {
       required: ['name'],
       additionalProperties: false,
     },
+    // raw 注册必须声明 output（schema + render）；'json' 是 defineTool 专用糖，raw 不支持
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+    },
     // 原始 JSON Schema 注册需自行校验输入
     async execute(args) {
       if (typeof args?.name !== 'string' || !args.name) {

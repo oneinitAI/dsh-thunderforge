@@ -52,9 +52,11 @@ export function apply(ctx) {
       description:
         '检查/回放 DSH 会话轨迹：列出会话、输出概览（turns/steps/工具调用/capture 统计）或渲染双数据源对齐的轨迹瀑布（会话事件 × thunderforge-capture 载荷记录）。用于"我的插件跑的时候发生了什么/为什么慢/哪次模型调用出错了"。',
       parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
         op: {
           type: 'string',
-          required: true,
           enum: ['sessions', 'summary', 'waterfall'],
           description: 'sessions=列出可用会话，summary=单会话概览，waterfall=对齐时间线',
         },
@@ -62,9 +64,11 @@ export function apply(ctx) {
         capture_dir: { type: 'string', description: 'capture 输出目录，默认 thunderforge-capture 配置值' },
         limit: { type: 'number', description: 'waterfall 显示行数，默认 80' },
         offset: { type: 'number', description: 'waterfall 起始偏移，默认 0' },
+        },
+        required: ['op'],
       },
       output: {
-        schema: { type: 'json' },
+        schema: { type: 'object', additionalProperties: true },
         render: (_args, value) => [{ type: 'text', text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }],
       },
       async execute(args) {

@@ -52,17 +52,21 @@ export function apply(ctx) {
       description:
         '管理 DSH profile：列出本机 profile（含 bundle/插件/补丁）、导出可移植配置文本、生成 ThunderForge 开发 preset（干净 profile，预装 dsh-thunderforge）、验证 profile 可启动。用于"帮我建个干净环境测插件/看看我有哪些配置/导出这套设置"。',
       parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
         op: {
           type: 'string',
-          required: true,
           enum: ['list', 'export', 'create-dev-preset', 'verify'],
           description: 'list=列出，export=导出便携文本，create-dev-preset=生成开发 preset，verify=dump-config 验证',
         },
         name: { type: 'string', description: 'profile 相关 op 的目标名（preset 只给短名，如 demo）' },
         plugin_path: { type: 'string', description: 'create-dev-preset 可选：被测插件路径，写入 preset 指南' },
+        },
+        required: ['op'],
       },
       output: {
-        schema: { type: 'json' },
+        schema: { type: 'object', additionalProperties: true },
         render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
       },
       async execute(args) {

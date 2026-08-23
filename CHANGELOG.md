@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.6 (2026-08-23)
+
+- **修复 raw 工具注册契约违规（真机报错驱动）**：0.1.5 去依赖化时对 raw 注册的 `output` 要求删过头/用错糖，真机 boot 报两类错——`must declare output { schema, render, presentationMeta? }`（scaffold 缺 output）与 `schema.type must be one of object/array/string/number/integer/boolean/null`（debugger/profile 用了 defineTool 专用的 `{type:'json'}`）。修复：三个工具 + tool 模板全部补齐合规 output；debugger/profile 的参数从 DSL 属性映射改为完整 object schema（含顶层 required、additionalProperties）
+- **新增真机契约测试**（test/tool-contract.test.mjs）：把 dsh `ctx.tools.register` 的实际校验规则固化进测试——output 硬性要求、schema 类型白名单、未知关键字拒绝、DSL `required:true` 残留检测、对象节点开放性声明，并对模板生成的工具同样校验
+
 ## 0.1.5 (2026-08-23)
 
 - **修复 Symbol 双实例崩溃（真 bug）**：曾把 `@deepseek-ai/dsh-tools`/`schemastery` 声明为普通 dependencies，装进 profile 后形成第二份模块实例——`TOOL_RUNTIME_SCHEDULER` 等内容寻址的 Symbol 在两份实例中不相等，导致 `ctx.tools[scheduler]` 为 undefined，多工具调用的 turn 以 `Cannot read properties of undefined (reading 'prepare')` 崩溃（web 实测复现）。修复：遵循树外插件零 harness 导入的生态惯例，全部工具改为原始 JSON Schema 注册（与脚手架模板一致），Config schema 移除（配置键与默认值保留于代码与文档），依赖降级为 optional peerDependencies（仅元数据）

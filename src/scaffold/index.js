@@ -73,6 +73,27 @@ export function apply(ctx) {
       required: ['plugin_name', 'template'],
       additionalProperties: false,
     },
+    output: {
+      schema: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', enum: ['ok', 'error'] },
+          path: { type: 'string' },
+          files: { type: 'array', items: { type: 'string' } },
+          reason: { type: 'string' },
+        },
+        additionalProperties: true,
+      },
+      render: (_args, value) => [
+        {
+          type: 'text',
+          text:
+            value.status === 'ok'
+              ? `已锻造 ${value.path}（${value.files.length} 个文件）。冒烟：${value.verify?.ran ? (value.verify.passed ? '通过 ✅' : `未通过 ❌ ${value.verify.summary}`) : '未运行'}。下一步：cd 进目录改 index.js，npm test 随时复验。`
+              : `生成失败：${value.reason}`,
+        },
+      ],
+    },
     async execute(args, exec) {
         const pluginName = args.plugin_name
         if (!PLUGIN_NAME_RE.test(pluginName)) {
