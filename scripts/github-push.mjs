@@ -87,8 +87,30 @@ async function main() {
     } catch {
       remoteCommitMissing = true
     }
-    if (remoteHead && remoteCommitMissing) {
-      throw new Error(`远端 ${branch} 有本地不存在的提交 ${remoteHead.slice(0, 8)}，先 git pull 解决分歧再推`)
+    if (remoteHead && remoteCommitMissing && !has('trust-remote') && !has('allow-divergent')) {
+      throw new Error(`远端 ${branch} 有本地不存在的提交 ${remoteHead.slice(0, 8)}（API 推送的历史形状差异）。确认内容血统后加 --trust-remote（自动子集校验）或 --allow-divergent（已人工验证时），或网络恢复后 git fetch + reset 对齐`)
+    }
+    // --trust-remote：远端树需与 reflog/分支中某提交的树完全一致（被压扁的历史也能对上）
+    if (remoteHead && remoteCommitMissing && has('trust-remote')) {
+      const remoteCommit = await api(`git/commits/${remoteHead}`)
+      const remoteTreeSha = remoteCommit.tree.sha
+      const knownTrees = new Set(
+        [
+          execFileSync('git', ['-C', repoDir, 'log', '--format=%T'], { encoding: 'utf8' }),
+          execFileSync('git', ['-C', repoDir, 'reflog', '--format=%T'], { encoding: 'utf8' }),
+        ]
+          .join('\n')
+          .trim()
+          .split('\n')
+          .filter(Boolean),
+      )
+      if (!knownTrees.has(remoteTreeSha)) {
+        throw new Error(`--trust-remote 校验失败：远端 tree ${remoteTreeSha.slice(0, 8)} 不在本地任何提交/reflog 中，真实分歧，先解决`)
+      }
+      out(`✓ trust-remote 校验通过：远端 tree 与本地（含 reflog）历史一致`)
+    }
+    if (remoteHead && remoteCommitMissing && has('allow-divergent')) {
+      out('⚠ --allow-divergent：跳过血统校验（确认你已人工验证内容关系）')
     }
     const tree = await api(`git/trees/${remoteHead}?recursive=1`)
     remoteTree = tree.tree.filter((entry) => entry.type === 'blob')

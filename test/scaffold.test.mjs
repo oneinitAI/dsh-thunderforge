@@ -18,12 +18,12 @@ test('插件注册 thunderforge_scaffold 工具且 schema 合规', () => {
   assert.equal(definitions.length, 1)
   const tool = definitions[0]
   assert.equal(tool.name, 'thunderforge_scaffold')
+  assert.equal(tool.parameters.type, 'object')
   assert.ok(tool.parameters.properties.plugin_name)
   assert.deepEqual([...tool.parameters.required].sort(), ['plugin_name', 'template'])
   assert.deepEqual(tool.parameters.properties.template.enum, [...TEMPLATES])
-  assert.equal(tool.output.schema.type, 'object')
-  assert.equal(tool.output.schema.additionalProperties, true)
-  assert.ok(Array.isArray(tool.output.render?.(null, { status: 'ok', path: '/x', files: [], verify: { ran: false } })))
+  assert.equal(tool.parameters.additionalProperties, false)
+  assert.equal(typeof tool.execute, 'function')
 })
 
 test('非法插件名返回规范错误值而非抛异常', async () => {

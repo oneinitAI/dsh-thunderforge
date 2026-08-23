@@ -6,7 +6,6 @@ import { spawn } from 'node:child_process'
 import { join } from 'node:path'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineTool } from '@deepseek-ai/dsh-tools'
 import { exists, listProfiles, profileDir, profileSize, readProfile, writeProfile } from './dshp/profile.js'
 import { serialize } from './dshp/portable.js'
 
@@ -48,8 +47,7 @@ function spawnText(command, args, cwd) {
 }
 
 export function apply(ctx) {
-  ctx.tools.register(
-    defineTool({
+  ctx.tools.register({
       name: 'thunderforge_profile',
       description:
         '管理 DSH profile：列出本机 profile（含 bundle/插件/补丁）、导出可移植配置文本、生成 ThunderForge 开发 preset（干净 profile，预装 dsh-thunderforge）、验证 profile 可启动。用于"帮我建个干净环境测插件/看看我有哪些配置/导出这套设置"。',
@@ -141,6 +139,5 @@ export function apply(ctx) {
           tail: result.out.trim().split('\n').slice(-8).join('\n'),
         }
       },
-    }),
-  )
+  })
 }

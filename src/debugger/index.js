@@ -3,7 +3,6 @@
 // 概念参考 dsh-trajectory-debug（MIT，未 vendor 其 Web UI 实现，见 LICENSES 台账）。
 import { readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
-import { defineTool } from '@deepseek-ai/dsh-tools'
 import { dshHome } from '../profile/dshp/profile.js'
 import { initConfig } from '../capture/core.js'
 import { buildTimeline, captureRows, loadCaptureIndex, renderTimeline, summarize } from './align.js'
@@ -48,8 +47,7 @@ async function resolveSession(sessionArg, sessions) {
 }
 
 export function apply(ctx) {
-  ctx.tools.register(
-    defineTool({
+  ctx.tools.register({
       name: 'thunderforge_debugger',
       description:
         '检查/回放 DSH 会话轨迹：列出会话、输出概览（turns/steps/工具调用/capture 统计）或渲染双数据源对齐的轨迹瀑布（会话事件 × thunderforge-capture 载荷记录）。用于"我的插件跑的时候发生了什么/为什么慢/哪次模型调用出错了"。',
@@ -103,6 +101,5 @@ export function apply(ctx) {
           totalRows: timeline.length,
         }
       },
-    }),
-  )
+  })
 }

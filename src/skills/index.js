@@ -3,7 +3,6 @@
 //   ctx.skills.register(SkillRegistration) 内联注册 + 目录 resourceBase
 //   解析正文中的相对资源（references/、examples/、guide/）。
 // 注册模式参考 dsh-plugin-guide（Apache-2.0，见 LICENSES 台账）。
-import Schema from '@deepseek-ai/schemastery'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -11,12 +10,8 @@ import { fileURLToPath } from 'node:url'
 export const name = 'thunderforge-skills'
 export const inject = ['skills']
 
-export const Config = Schema.object({
-  entryLayer: Schema.boolean().default(true).description('入口索引层 thunderforge-dev'),
-  archLayer: Schema.boolean().default(true).description('架构标准层 dsh-plugin-dev'),
-  pitfallsLayer: Schema.boolean().default(true).description('坑点手册层 dsh-plugin-guide'),
-  buddyLayer: Schema.boolean().default(true).description('人话模式层 thunderforge-buddy'),
-})
+// 层开关（entryLayer/archLayer/pitfallsLayer/buddyLayer，默认全开）经 config 传入；
+// 树外插件零 harness 导入，不导出 Schemastery Config（避免 Symbol 双实例，见 CHANGELOG 0.1.5）
 
 const packageRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))))
 const skillsRoot = join(packageRoot, 'skills')

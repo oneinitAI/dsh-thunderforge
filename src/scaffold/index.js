@@ -5,8 +5,11 @@ import { spawn } from 'node:child_process'
 import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineTool } from '@deepseek-ai/dsh-tools'
 import { PLUGIN_NAME_RE, TEMPLATES, scaffoldFiles } from './templates.js'
+
+// 树外插件零 harness 导入（生态惯例，见 dsh-plugin-guide）：直接用原始 JSON Schema
+// 定义注册工具，避免把 @deepseek-ai/dsh-tools 装进 profile 树造成 Symbol 双实例
+//（曾导致 ctx.tools[TOOL_RUNTIME_SCHEDULER] undefined 崩溃，详见 CHANGELOG 0.1.5）。
 
 export const name = 'thunderforge-scaffold'
 export const inject = ['tools']
@@ -55,40 +58,22 @@ async function runSmoke(root, signal) {
 }
 
 export function apply(ctx) {
-  ctx.tools.register(
-    defineTool({
-      name: 'thunderforge_scaffold',
-      description:
-        '生成一个带调试埋点与冒烟测试的 DSH 插件骨架（模板 tool/events/webui），默认生成后立即运行冒烟验证。用于"帮我建/写/初始化一个 DSH 插件"。',
-      parameters: {
-        plugin_name: { type: 'string', required: true, description: 'kebab-case 插件名，如 my-first-plugin' },
-        template: { type: 'string', required: true, enum: [...TEMPLATES], description: '骨架形态：tool=模型工具，events=钩子/门禁，webui=界面' },
+  ctx.tools.register({
+    name: 'thunderforge_scaffold',
+    description:
+      '生成一个带调试埋点与冒烟测试的 DSH 插件骨架（模板 tool/events/webui），默认生成后立即运行冒烟验证。用于"帮我建/写/初始化一个 DSH 插件"。',
+    parameters: {
+      type: 'object',
+      properties: {
+        plugin_name: { type: 'string', description: 'kebab-case 插件名，如 my-first-plugin' },
+        template: { type: 'string', enum: [...TEMPLATES], description: '骨架形态：tool=模型工具，events=钩子/门禁，webui=界面' },
         dir: { type: 'string', description: '输出基目录（绝对或相对当前工作区），默认 "."，骨架落在 <dir>/dsh-<plugin_name>' },
         verify: { type: 'boolean', description: '生成后立即在骨架内运行 node --test 冒烟，默认 true' },
       },
-      output: {
-        schema: {
-          type: 'object',
-          properties: {
-            status: { type: 'string', enum: ['ok', 'error'] },
-            path: { type: 'string' },
-            files: { type: 'array', items: { type: 'string' } },
-            verify: { type: 'json' },
-            reason: { type: 'string' },
-          },
-          additionalProperties: true,
-        },
-        render: (_args, value) => [
-          {
-            type: 'text',
-            text:
-              value.status === 'ok'
-                ? `已锻造 ${value.path}（${value.files.length} 个文件）。冒烟：${value.verify?.ran ? (value.verify.passed ? '通过 ✅' : `未通过 ❌ ${value.verify.summary}`) : '未运行'}。下一步：cd 进目录改 index.js，npm test 随时复验。`
-                : `生成失败：${value.reason}`,
-          },
-        ],
-      },
-      async execute(args, exec) {
+      required: ['plugin_name', 'template'],
+      additionalProperties: false,
+    },
+    async execute(args, exec) {
         const pluginName = args.plugin_name
         if (!PLUGIN_NAME_RE.test(pluginName)) {
           return { status: 'error', reason: `INVALID_PLUGIN_NAME: ${pluginName} 必须是 kebab-case`, path: '', files: [], verify: { ran: false } }
@@ -116,6 +101,5 @@ export function apply(ctx) {
           forgedBy: `${name} @ ${packageRoot}`,
         }
       },
-    }),
-  )
+  })
 }

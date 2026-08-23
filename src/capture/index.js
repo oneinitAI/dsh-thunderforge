@@ -5,23 +5,13 @@
 //     只在注册时把原适配器包一层；resolveModel/listModels 经原型链透传。
 //   - stream() 是 AsyncIterable<StreamChunk>，错误路径有两条（抛出 / finish error），
 //     两条路径都要落盘且不得改变原语义。
-import Schema from '@deepseek-ai/schemastery'
 import { CaptureStore, initConfig } from './core.js'
 
 export const name = 'thunderforge-capture'
 export const inject = ['llm']
 
-export const Config = Schema.object({
-  enabled: Schema.boolean().default(true).description('总开关'),
-  dir: Schema.string().default('').description('输出目录，默认 DSH_HOME/thunderforge-capture'),
-  providers: Schema.array(Schema.string()).default([]).description('仅捕获这些 provider，留空捕获全部'),
-  redact: Schema.boolean().default(true).description('掩码疑似密钥字段'),
-  captureDeltas: Schema.boolean().default(false).description('记录原始 StreamChunk 分片'),
-  maxStringLength: Schema.number().default(0).description('单字符串保留长度，0 不限'),
-  maxFiles: Schema.number().default(2000).description('保留捕获文件数，0 不限'),
-  maxTotalBytes: Schema.number().default(0).description('目录总字节上限，0 不限'),
-  pruneEvery: Schema.number().default(50).description('每 N 次写入清理一次'),
-})
+// 配置键与默认值见 core.js DEFAULTS；树外插件零 harness 导入（生态惯例），
+// 不再导出 Schemastery Config，避免把 @deepseek-ai 包拖进 profile 树造成 Symbol 双实例
 
 function toArray(value) {
   return [value].flat().filter((item) => item !== undefined && item !== null).map(String)

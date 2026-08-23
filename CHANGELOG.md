@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.5 (2026-08-23)
+
+- **修复 Symbol 双实例崩溃（真 bug）**：曾把 `@deepseek-ai/dsh-tools`/`schemastery` 声明为普通 dependencies，装进 profile 后形成第二份模块实例——`TOOL_RUNTIME_SCHEDULER` 等内容寻址的 Symbol 在两份实例中不相等，导致 `ctx.tools[scheduler]` 为 undefined，多工具调用的 turn 以 `Cannot read properties of undefined (reading 'prepare')` 崩溃（web 实测复现）。修复：遵循树外插件零 harness 导入的生态惯例，全部工具改为原始 JSON Schema 注册（与脚手架模板一致），Config schema 移除（配置键与默认值保留于代码与文档），依赖降级为 optional peerDependencies（仅元数据）
+- 副产品：dsh-thunderforge 回到**零运行时依赖**，tarball 不再携带任何 @deepseek-ai 包
+
 ## 0.1.4 (2026-08-23)
 
 - **新口号**：励志做（字号小到免责）**0 元以内最 nb 的 DSH 插件\***（h1 全页最大）——注\* 为产品目标，非质量承诺，解释权归雷雨天气；ThunderForge 本名降级为 h3 陪衬
