@@ -2,7 +2,10 @@
 
 # ⚡ ThunderForge
 
-### 宇宙无敌雷霆霹雳炫光 · DSH 插件锻造炉
+<p>
+  <sub><sub>励志做</sub></sub> <strong>0 元以内最 nb 的 DSH 插件</strong><sup>*</sup><br>
+  <sub><sub>注*：「0 元以内最 nb 的 DSH 插件」为产品目标，非质量承诺，亦不暗示"已 nb""正在 nb"或"即将 nb"。"0 元以内"指本插件定价区间，不代表 0.01 元档位存在竞品。解释权归雷雨天气。</sub></sub>
+</p>
 
 **一站式 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness) 插件开发套件 · 单一 Bundle**
 
@@ -18,10 +21,6 @@
 
 <sub>梦想还是要有的，万一雷霆劈中你了呢</sub>
 
-**0 元以内最 nb 的 DSH 插件**
-
-<sub>注*：「0 元以内最 nb 的 DSH 插件」为产品目标，非质量承诺；解释权归雷电所有</sub>
-
 </div>
 
 ---
@@ -32,11 +31,11 @@
 |---|---|---|
 | ⚡ **thunderforge-capture** | 插件 | LLM 载荷捕获：透明代理 + 密钥掩码 + 轮转 + `index.jsonl` 索引流（清洁室自研） |
 | 🧠 **thunderforge-skills** | 技能 ×4 | 四层知识库：入口索引 + 架构标准 + 坑点手册 + **画像自适应表达**（实时评估用户水平，动态匹配回答深度） |
-
-> 🗣️ **dsh-buddy 画像自适应表达**（独立项目 [oneinitAI/dsh-buddy](https://github.com/oneinitAI/dsh-buddy)）：agent 从对话中被动观察，实时构建用户画像——熟练度、偏好、**领域差异**（十年后端也可能是 DSH 一年级）、当前状态——并按画像现场生成合适深度的回答；画像每轮更新，用户开始说术语就立刻升级表达。没有预设话术、没有术语对照表；拿不准时宁可略高估。轻梗每会话至多一句（first day to vibecoding: who is JSON?）。
 | 🔨 **thunderforge-scaffold** | 模型工具 | 对话式脚手架：三类零依赖模板，**生成即冒烟** |
 | 🔍 **thunderforge-debugger** | 模型工具 | 双数据源轨迹瀑布：会话日志 × capture 载荷按毫秒对齐 |
 | 🧰 **thunderforge-profile** | 模型工具 | profile 管理 + 一键 dev preset（只新建、绝不碰既有环境） |
+
+> 🗣️ **dsh-buddy 画像自适应表达**（独立项目 [oneinitAI/dsh-buddy](https://github.com/oneinitAI/dsh-buddy)）：agent 从对话中被动观察，实时构建用户画像——熟练度、偏好、**领域差异**（十年后端也可能是 DSH 一年级）、当前状态——并按画像现场生成合适深度的回答；画像每轮更新，用户开始说术语就立刻升级表达。没有预设话术、没有术语对照表；拿不准时宁可略高估。轻梗每会话至多一句（first day to vibecoding: who is JSON?）。
 
 ## 🚀 安装
 

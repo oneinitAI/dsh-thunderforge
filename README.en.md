@@ -2,7 +2,10 @@
 
 # ⚡ ThunderForge
 
-### The Universe-Invincible Thunder-Lightning Dazzling DSH Plugin Forge
+<p>
+  <sub><sub>aspiring to be</sub></sub> <strong>the best DSH plugin $0 can buy</strong><sup>*</sup><br>
+  <sub><sub>*"The best DSH plugin $0 can buy" is a product goal — not a promise of being best, becoming best, or ever being evaluated as best. "$0 and under" refers to this plugin's price bracket and does not imply a competitive $0.01 tier exists. Interpretation rights belong to the weather.</sub></sub>
+</p>
 
 **All-in-one plugin development suite for [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness) · a single Bundle**
 
@@ -17,10 +20,6 @@
 **Create → Develop → Debug → Verify → Ship** — one `dsh plugin add`, the whole forge lights up ⚡
 
 <sub>Keep dreaming — lightning might just pick you</sub>
-
-**The best DSH plugin money can't buy\***
-
-<sub>*"The best DSH plugin under ¥0" is a product goal, not a quality guarantee; final interpretation belongs to the thunder</sub>
 
 </div>
 
