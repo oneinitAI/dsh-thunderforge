@@ -1,6 +1,6 @@
 <div align="center">
 
-### ⚡ ThunderForge
+### ⚡ ThunderForge · The Universe-Invincible Thunder-Lightning Dazzling
 
 <sub><sub><sub>aspiring to be</sub></sub></sub>
 

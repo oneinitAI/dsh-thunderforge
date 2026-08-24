@@ -1,6 +1,6 @@
 <div align="center">
 
-### ⚡ ThunderForge
+### ⚡ ThunderForge · 宇宙无敌雷霆霹雳炫光
 
 <sub><sub><sub>励志做</sub></sub></sub>
 
