@@ -28,12 +28,13 @@ const PRESET_PATCH = `# ThunderForge dev preset 用户层（在所有 bundle 层
 `
 
 function spawnText(command, args, cwd) {
+  // Windows 下不用 shell:true（DEP0190 弃用警告：shell + args 数组），
+  // 改经 cmd /d /s /c 显式解析，保持 PATH 上 .cmd 的可发现性
+  const isWin = process.platform === 'win32'
   return new Promise((resolvePromise) => {
-    const child = spawn(command, args, {
-      cwd,
-      shell: process.platform === 'win32',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
+    const child = isWin
+      ? spawn('cmd.exe', ['/d', '/s', '/c', command, ...args], { cwd, stdio: ['ignore', 'pipe', 'pipe'] })
+      : spawn(command, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] })
     let out = ''
     const collect = (stream) => stream.on('data', (chunk) => {
       out += chunk

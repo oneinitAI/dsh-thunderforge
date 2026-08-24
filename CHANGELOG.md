@@ -4,7 +4,9 @@
 
 - **capture 默认目录改到 DSH 数据根**（行为变更）：无 `dir` 配置时从 `./.thunderforge-capture`（进程 cwd）改为 `$DSH_HOME/thunderforge-capture`（无 DSH_HOME 时 `~/.dsh/thunderforge-capture`），与 sessions/profiles 同级、符合用户心智——真机排查时维护者都找错了位置。检测到旧目录有历史数据时输出一次性迁移提示；debugger 默认 capture_dir 自动跟随。
 - **capture 协议失效守卫（R1）**：新增 `staleWarnMs` 配置（默认 300000，0 关闭）——已包装适配器但超过该时长仍零捕获时输出显式警告「LLM 适配器协议可能已变更」。静默失效是 capture 最大敌人（v0.1.6 prepareCall 失配事故零报错），此后协议再变至少会叫。
-- **双协议覆盖防回归测试**：断言两步协议适配器必获 prepareCall 包装、单步 stream 适配器必获 stream 包装；真机形状 fixture（twoStepAdapter）固化 dsh-llm-pi-ai 接口面。`node --test` 40/40。
+- **skills preset 盲区警告（R3）**：agent preset 为 minimal（极简模式）时 dsh 不挂载 `skill` 工具、`<available_skills>` 不注入 system——四层知识库注册成功却永远无法触发且无任何报错。thunderforge-skills 现于 boot 后延迟探测 `skill` 工具可达性，不可达时显式警告并指引切换标准模式；thunderforge-dev SKILL.md 增加对应排障条目。
+- **工程债清理（R4）**：① 消除 DEP0190（profile verify 的 spawn 在 Windows 改经 `cmd /d /s /c`，不再 shell:true + args）；② decodeSession 支持 Buffer 输入，新增多帧 zstd 容器解码与 torn tail 容忍测试（真实会话形态首次入测）；③ loadCaptureIndex 返回 `{ rows, corrupt }`，损坏索引行（append 中断的 torn write）不再静默丢失——summary 新增 `indexCorruptLines` 上报。
+- **双协议覆盖防回归测试**：断言两步协议适配器必获 prepareCall 包装、单步 stream 适配器必获 stream 包装；真机形状 fixture（twoStepAdapter）固化 dsh-llm-pi-ai 接口面。`node --test` 43/43。
 
 ## 0.1.7 (2026-08-24)
 

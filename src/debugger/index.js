@@ -92,10 +92,10 @@ export function apply(ctx) {
         const { header, events } = decodeSession(target.file)
         const turns = reconstruct(events)
         const captureDir = args.capture_dir ?? initConfig({}).dir
-        const indexRows = await loadCaptureIndex(captureDir)
+        const { rows: indexRows, corrupt } = await loadCaptureIndex(captureDir)
 
         if (args.op === 'summary') {
-          return { file: target.file, ...summarize(header, events, turns, indexRows) }
+          return { file: target.file, ...summarize(header, events, turns, { rows: indexRows, corrupt }) }
         }
 
         const timeline = buildTimeline(events, indexRows)

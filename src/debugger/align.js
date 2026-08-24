@@ -5,24 +5,29 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-/** 读取 capture 索引流；目录或文件不存在返回空（capture 未启用是正常态）。 */
+/** 读取 capture 索引流；目录或文件不存在返回空（capture 未启用是正常态）。
+ * 返回 { rows, corrupt }——corrupt 为解析失败行数（append 中断的 torn write），
+ * 供 summary 上报，静默丢行至少可见。 */
 export async function loadCaptureIndex(captureDir) {
   try {
     const text = await readFile(join(captureDir, 'index.jsonl'), 'utf8')
-    return text
+    let corrupt = 0
+    const rows = text
       .split(/\r?\n/)
       .filter((line) => line.trim() !== '')
       .map((line) => {
         try {
           return JSON.parse(line)
         } catch {
+          corrupt += 1
           return null
         }
       })
       .filter(Boolean)
       .map((row) => ({ ...row, timeMs: Date.parse(row.ts) }))
+    return { rows, corrupt }
   } catch {
-    return []
+    return { rows: [], corrupt: 0 }
   }
 }
 
@@ -88,8 +93,10 @@ export function buildTimeline(events, indexRows) {
   })
 }
 
-/** 会话概览 + capture 统计。 */
+/** 会话概览 + capture 统计。indexRows 为 loadCaptureIndex 的 { rows, corrupt } 结果。 */
 export function summarize(header, events, turns, indexRows) {
+  const rows = Array.isArray(indexRows) ? indexRows : indexRows?.rows ?? []
+  const corrupt = Array.isArray(indexRows) ? 0 : indexRows?.corrupt ?? 0
   const typeCounts = {}
   for (const event of events) typeCounts[event.type] = (typeCounts[event.type] ?? 0) + 1
   const steps = turns.reduce((sum, turn) => sum + turn.steps.length, 0)
@@ -98,7 +105,7 @@ export function summarize(header, events, turns, indexRows) {
     0,
   )
   const times = events.map((event) => event.time).filter((t) => typeof t === 'number')
-  const captureOk = indexRows.filter((row) => row.ok).length
+  const captureOk = rows.filter((row) => row.ok).length
   return {
     session: {
       id: header?.id ?? null,
@@ -113,10 +120,11 @@ export function summarize(header, events, turns, indexRows) {
       typeCounts,
     },
     capture: {
-      calls: indexRows.length,
+      calls: rows.length,
       ok: captureOk,
-      failed: indexRows.length - captureOk,
-      totalDurationMs: indexRows.reduce((sum, row) => sum + (row.durationMs ?? 0), 0),
+      failed: rows.length - captureOk,
+      totalDurationMs: rows.reduce((sum, row) => sum + (row.durationMs ?? 0), 0),
+      indexCorruptLines: corrupt,
     },
   }
 }

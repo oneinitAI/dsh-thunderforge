@@ -105,9 +105,9 @@ function expandStorageRecord(value) {
   return events
 }
 
-/** Decode a session artifact path into `{ header, events }`. */
+/** Decode a session artifact path (or in-memory Buffer) into `{ header, events }`. */
 export function decodeSession(file) {
-  const buffer = readFileSync(file)
+  const buffer = Buffer.isBuffer(file) ? file : readFileSync(file)
   let plain
   if (buffer.length >= 4 && buffer.subarray(0, 4).equals(ZSTD_FILE_MAGIC)) {
     plain = decompressContainer(buffer)

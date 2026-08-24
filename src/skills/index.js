@@ -49,6 +49,7 @@ export function loadSkillDir(dir) {
 }
 
 export function apply(ctx, config = {}) {
+  let registered = 0
   for (const layer of LAYERS) {
     if (config[layer.enabledConfig] === false) continue
     let skill
@@ -62,6 +63,7 @@ export function apply(ctx, config = {}) {
       ctx?.logger?.(name)?.warn?.(`技能目录 ${layer.dir} 的 name "${skill.name}" 不合法，跳过`)
       continue
     }
+    registered += 1
     // 注册是 effect：dispose 插件 fiber 即注销该技能（HMR 安全）
     ctx.effect(() =>
       ctx.skills.register({
@@ -72,5 +74,28 @@ export function apply(ctx, config = {}) {
         resourceBase: { kind: 'directory', path: skill.root },
       }),
     )
+  }
+
+  // R3 preset 盲区探测：agent preset 为 minimal（极简模式）时 dsh 不挂载 skill 工具，
+  // `<available_skills>` 也不注入 system——技能注册成功但模型永远无法触发，且无任何报错。
+  // 延迟探测（等 tool-skill 完成注册），不可达则显式警告，把静默盲区变成可排障信号。
+  const probeDelayMs = Number(config.probeDelayMs ?? 8000)
+  if (registered > 0 && probeDelayMs > 0) {
+    const probe = setTimeout(() => {
+      try {
+        const reachable = typeof ctx?.tools?.get === 'function' ? ctx.tools.get('skill') : undefined
+        if (!reachable) {
+          ctx?.logger?.(name)?.warn?.(
+            `${name}: 已注册 ${registered} 层知识库，但未探测到 \`skill\` 工具——`
+            + '当前 agent preset 可能未包含 Skills 能力（如 minimal 极简模式），知识库不会被模型触发；'
+            + '请切换标准模式或含 Skills 的 preset 后重启会话',
+          )
+        }
+      } catch {
+        /* 探测失败不影响运行 */
+      }
+    }, probeDelayMs)
+    probe.unref?.()
+    ctx?.on?.('dispose', () => clearTimeout(probe))
   }
 }

@@ -41,6 +41,8 @@ metadata:
 
 **capture 层序**：thunderforge 需在 profile 的 `dsh.profile.bundles` 里排在 `@deepseek-ai/dsh-base` **之前**，capture 才能包装 base 内 LLM 适配器的注册（llm 服务无法枚举已注册适配器，晚到即落空）。
 
+**技能不生效？** 先确认 agent preset 含 Skills 能力——minimal（极简模式）会裁掉 `skill` 工具，知识库注册了也不会被模型触发；切换标准模式后重启会话。
+
 ## 硬规则（与 dsh-plugin-dev 一致，违反必翻车）
 
 1. 插件入口导出 `name` + `apply(ctx, config)`；副作用经 `ctx.effect()` 注册以获得自动清理

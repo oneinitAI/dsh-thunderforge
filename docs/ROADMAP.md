@@ -11,8 +11,8 @@
 |---|---|---|---|
 | P0 | R1 capture 协议失效告警 + 真机形状 fixture | 静默失效是 capture 最大的敌人，这次差点又漏过去 | ✅ 完成（v0.1.8） |
 | P0 | R2 capture 默认目录改 `~/.dsh` 下 | 维护者自己都找半天落盘位置，用户更会懵 | ✅ 完成（v0.1.8） |
-| P0 | R3 skill 触发的 preset 盲区警告 | minimal preset 裁掉 skill 工具，用户不知道技能为何"不生效" | 候选 |
-| P0 | R4 工程债三件套 | DEP0190 / debugger 零测试覆盖 / capture index 损坏行 | 候选 |
+| P0 | R3 skill 触发的 preset 盲区警告 | minimal preset 裁掉 skill 工具，用户不知道技能为何"不生效" | ✅ 完成（v0.1.8） |
+| P0 | R4 工程债三件套 | DEP0190 / debugger 零测试覆盖 / capture index 损坏行 | ✅ 完成（v0.1.8） |
 | P1 | R5 thunderforge_release 发布门禁 | "发布"环节目前是闭环里最空的一环 | 候选 |
 | P1 | R6 契约自测库导出 | 把 tool-contract 的血泪教训变成用户插件的一行断言 | 候选 |
 | P2 | R7 骨架 upgrade 器 | dsh 协议升级时用户插件怎么跟进 | 候选 |
