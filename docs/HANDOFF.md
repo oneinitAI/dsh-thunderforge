@@ -98,6 +98,7 @@ node scripts/release.mjs patch --dry-run # 只看计划
 |---|---|
 | `README.md` / `README.en.md` | 用户（双语文案含梗） |
 | `docs/DEVELOPMENT.md` | 贡献者（架构/契约/技能写作规范） |
+| `docs/ROADMAP.md` | 路线图（改进与拓展候选：P0 真机坑 / P1 闭环缺口 / P2 拓展） |
 | `docs/PRD.md` | 产品（分阶段计划与验收） |
 | `docs/RELEASE.md` | 发布清单与验证 |
 | `docs/NETWORK-NOTES.md` | 网络排障手册 |

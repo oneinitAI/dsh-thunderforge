@@ -95,6 +95,7 @@ AI: (thunderforge_profile) → tf-dev-demo 已就绪
 |---|---|
 | [HANDOFF](./docs/HANDOFF.md) | 交接文档：项目全貌、架构约束、发布流程、遗留任务（**接手人先读**） |
 | [DEVELOPMENT](./docs/DEVELOPMENT.md) | 开发文档：架构决策 + 代码地图 + 测试哲学 + 技能写作规范（贡献者深度阅读） |
+| [ROADMAP](./docs/ROADMAP.md) | 开发路线图：改进与拓展候选（P0 真机坑 / P1 闭环缺口 / P2 拓展） |
 | [PRD](./docs/PRD.md) | 分阶段产品计划与验收记录 |
 | [RELEASE](./docs/RELEASE.md) | 发布清单与一键发布 |
 | [NETWORK-NOTES](./docs/NETWORK-NOTES.md) | 网络问题手册（443 重置/TLS/大包/peer 警告） |

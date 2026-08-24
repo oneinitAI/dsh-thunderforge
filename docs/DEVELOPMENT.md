@@ -215,6 +215,6 @@ node scripts/release.mjs patch --dry-run # 只看计划
 
 ## 10. 已知边界与待办
 
-- **live 端到端**（真模型对话 → skill 触发 → capture 落盘 → waterfall 对齐）依赖带模型 API 的会话；本机 headless 曾挂起，建议在 web 会话中验证
-- **live skill 触发评测**：`skills/*/evals/trigger-queries.json` 已备，需真实会话按正负例跑
-- 骨架 upgrade 器、llm-adapter 模板、capture 报告化、MCP 双端暴露——见开发路线候选（未开工）
+- **live 端到端**（真模型对话 → skill 触发 → capture 落盘 → waterfall 对齐）已于 2026-08-24 真机验证通过（见 HANDOFF §十）
+- **live skill 触发评测**：train 6/6、validation 4/4（web 真机抽样，结果记入 `skills/thunderforge-dev/evals/trigger-queries.json` methodology）；注意 skill 触发要求 agent preset 含 Skills（minimal 极简模式裁剪 skill 工具）
+- 改进与拓展路线（骨架 upgrade 器、llm-adapter 模板、MCP 双端暴露、capture 协议告警等）→ 见 [`ROADMAP.md`](./ROADMAP.md)
