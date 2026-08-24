@@ -12,12 +12,12 @@ function mockCtx() {
   return definitions
 }
 
-test('插件注册 thunderforge_scaffold 工具且 schema 合规', () => {
+test('插件注册 thunderforge_scaffold 与 thunderforge_upgrade 工具且 schema 合规', () => {
   const definitions = mockCtx()
   assert.equal(pluginName, 'thunderforge-scaffold')
-  assert.equal(definitions.length, 1)
-  const tool = definitions[0]
-  assert.equal(tool.name, 'thunderforge_scaffold')
+  assert.equal(definitions.length, 2)
+  const tool = definitions.find((d) => d.name === 'thunderforge_scaffold')
+  assert.ok(tool, 'thunderforge_scaffold 应注册')
   assert.equal(tool.parameters.type, 'object')
   assert.ok(tool.parameters.properties.plugin_name)
   assert.deepEqual([...tool.parameters.required].sort(), ['plugin_name', 'template'])
@@ -78,4 +78,46 @@ test('调试埋点清单声明 capture 索引流与事件前缀', () => {
   assert.equal(manifest.instrumentation.capture.indexStream, 'index.jsonl')
   assert.equal(manifest.instrumentation.events.prefix, 'probe-plugin/')
   assert.ok(PLUGIN_NAME_RE.test('probe-plugin'))
+})
+
+test('thunderforge_upgrade：新骨架零建议，缺文件/缺埋点/契约违规逐项报', async () => {
+  const [scaffoldTool, upgradeTool] = mockCtx()
+  assert.equal(upgradeTool.name, 'thunderforge_upgrade')
+  const dir = await mkdtemp(join(tmpdir(), 'tf-upgrade-'))
+  try {
+    // 先生成一个合规骨架 → 升级检查应零建议
+    const forged = await scaffoldTool.execute({ plugin_name: 'fresh-skel', template: 'tool', dir }, {})
+    assert.equal(forged.status, 'ok')
+    const fresh = await upgradeTool.execute({ dir: forged.path })
+    assert.equal(fresh.ok, true, JSON.stringify(fresh.suggestions))
+
+    // 再造一个残缺骨架：删 ci.yml、埋点清单去掉 instrumentation、工具缺 output
+    const fsPromises = await import('node:fs/promises')
+    const broken = join(dir, 'broken')
+    await fsPromises.mkdir(broken, { recursive: true })
+    const files = scaffoldFiles({ pluginName: 'broken-skel', template: 'tool' })
+    for (const [relative, body] of files) {
+      if (relative === '.github/workflows/ci.yml') continue // 缺文件
+      if (relative === 'thunderforge.debug.json') {
+        await fsPromises.writeFile(join(broken, relative), JSON.stringify({ version: 1 }), 'utf8')
+        continue
+      }
+      await fsPromises.mkdir(join(broken, relative, '..'), { recursive: true })
+      await fsPromises.writeFile(join(broken, relative), body, 'utf8')
+    }
+    // 埋雷：入口工具缺 output
+    await fsPromises.writeFile(
+      join(broken, 'index.js'),
+      `export const name = 'broken_skel'\nexport const inject = ['tools']\nexport function apply(ctx) { ctx.tools.register({ name: 'x_tool', parameters: { type: 'object', properties: {}, required: [], additionalProperties: false }, async execute() { return {} } }) }\n`,
+      'utf8',
+    )
+    const out = await upgradeTool.execute({ dir: broken, template: 'tool' })
+    assert.equal(out.ok, false)
+    const kinds = new Set(out.suggestions.map((s) => s.kind))
+    assert.ok(kinds.has('missing-file'), '应报缺失文件')
+    assert.ok(kinds.has('stale-manifest'), '应报埋点声明落后')
+    assert.ok(kinds.has('contract'), '应报契约违规')
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
 })

@@ -1,11 +1,12 @@
 // ThunderForge scaffold 插件：把插件脚手架内化为模型工具。
-// 生成 → 落盘 → （默认）立即冒烟，一条 execute 完成 PRD M2 的核心闭环。
-// 规范依据 dsh-plugin-dev 技能 references/tools.md（defineTool、规范 JSON 值、错误路径）。
+// 生成 → 落盘 → （默认）立即冒烟，一条 execute 完成 PRD M2 的核心闭环；
+// thunderforge_upgrade 对存量骨架做结构对比，输出迁移建议（R7）。
 import { spawn } from 'node:child_process'
-import { mkdir, readdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { PLUGIN_NAME_RE, TEMPLATES, scaffoldFiles } from './templates.js'
+import { checkRawToolContract } from '../contract/index.js'
 
 // 树外插件零 harness 导入（生态惯例，见 dsh-plugin-guide）：直接用原始 JSON Schema
 // 定义注册工具，避免把 @deepseek-ai/dsh-tools 装进 profile 树造成 Symbol 双实例
@@ -122,5 +123,121 @@ export function apply(ctx) {
           forgedBy: `${name} @ ${packageRoot}`,
         }
       },
+  })
+
+  // R7 骨架 upgrade 器：对比存量骨架与最新模板的结构差异，输出迁移建议清单。
+  // 只建议不代改——用户代码是用户的地盘，动它之前永远先问。
+  ctx.tools.register({
+    name: 'thunderforge_upgrade',
+    description:
+      '检查 ThunderForge 生成的插件骨架是否落后于最新模板：对比文件清单、调试埋点声明（thunderforge.debug.json）与工具契约，输出迁移建议清单。只建议不代改。用于"我的骨架是老版本生成的/升级 thunderforge 后要跟进什么"。',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        dir: { type: 'string', description: '骨架目录（含 package.json 与 index.js），绝对或相对当前工作区' },
+        template: { type: 'string', enum: [...TEMPLATES, 'llm-adapter'], description: '骨架形态；缺省时从 thunderforge.debug.json 读取' },
+      },
+      required: ['dir'],
+    },
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args, value) => [{
+        type: 'text',
+        text: typeof value === 'string'
+          ? value
+          : `${value.ok ? '✅ 与最新模板一致' : `⚠️ ${value.suggestions.length} 条迁移建议`}\n${(value.suggestions ?? []).map((s) => `- [${s.kind}] ${s.detail}`).join('\n')}`,
+      }],
+    },
+    async execute(args) {
+      const root = resolve(args.dir ?? '.')
+      let rootStat
+      try {
+        rootStat = await stat(root)
+        if (!rootStat.isDirectory()) return { ok: false, error: 'NOT_A_DIRECTORY', dir: root }
+      } catch {
+        return { ok: false, error: 'DIR_NOT_FOUND', dir: root, hint: '目录不存在，检查路径' }
+      }
+
+      // 读埋点清单拿 template 与 pluginName
+      let template = args.template
+      let pluginName
+      try {
+        const manifest = JSON.parse(await readFile(join(root, 'thunderforge.debug.json'), 'utf8'))
+        template = template ?? manifest.template
+        if (manifest.instrumentation?.events?.prefix) {
+          pluginName = String(manifest.instrumentation.events.prefix).replace(/\/$/, '')
+        }
+      } catch {
+        /* 无 debug 清单——继续用参数与 package.json 推导 */
+      }
+      if (!TEMPLATES.includes(template) && template !== 'llm-adapter') {
+        return { ok: false, error: 'TEMPLATE_UNKNOWN', hint: `无法确定模板形态，请用 template 参数显式指定（${[...TEMPLATES, 'llm-adapter'].join('/')}）`, dir: root }
+      }
+      if (!pluginName) {
+        try {
+          const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'))
+          pluginName = String(pkg.name ?? '').replace(/^dsh-/, '')
+        } catch {
+          /* 保持 undefined */
+        }
+      }
+      if (!pluginName || !PLUGIN_NAME_RE.test(pluginName)) pluginName = 'upgraded-skeleton'
+
+      /** 最新模板产物（作为对比基准）。 */
+      const latest = new Map(scaffoldFiles({ pluginName, template }))
+      /** @type {{kind: string, detail: string}[]} 建议清单 */
+      const suggestions = []
+
+      // ① 文件清单差异：最新模板有而本地缺失的文件
+      for (const [relative] of latest) {
+        try {
+          await stat(join(root, relative))
+        } catch {
+          suggestions.push({ kind: 'missing-file', detail: `缺少 ${relative}——新模板包含它（如 CI/测试/埋点清单），建议从新骨架补入并适配你的实现` })
+        }
+      }
+
+      // ② 调试埋点声明对比：instrumentation 键结构是否落后
+      try {
+        const manifest = JSON.parse(await readFile(join(root, 'thunderforge.debug.json'), 'utf8'))
+        const latestManifest = JSON.parse(latest.get('thunderforge.debug.json'))
+        const flatKeys = (obj, prefix = '') => Object.entries(obj ?? {}).flatMap(([k, v]) => (v && typeof v === 'object' ? flatKeys(v, `${prefix}${k}.`) : [`${prefix}${k}`]))
+        const localKeys = new Set(flatKeys(manifest))
+        for (const key of flatKeys(latestManifest)) {
+          if (!localKeys.has(key)) {
+            suggestions.push({ kind: 'stale-manifest', detail: `thunderforge.debug.json 缺少埋点声明 "${key.replace(/\.$/, '')}"——对照最新模板补齐，debugger/capture 的对齐依赖它` })
+            break // 同类提示一条足够
+          }
+        }
+        if (!String(manifest.scaffoldedBy ?? '').includes('thunderforge-scaffold')) {
+          suggestions.push({ kind: 'not-forge-born', detail: '该目录没有 thunderforge-scaffold 的生成标记（scaffoldedBy），可能不是本工具生成的骨架——建议仅供参考' })
+        }
+      } catch {
+        suggestions.push({ kind: 'missing-manifest', detail: '缺少 thunderforge.debug.json——调试埋点声明缺失，capture 索引流与事件前缀的对齐依赖它' })
+      }
+
+      // ③ 工具契约自检：入口可加载则顺带校验（非工具类骨架会自然跳过）
+      try {
+        const mod = await import(`file://${join(root, 'index.js').replaceAll('\\', '/')}`)
+        if (typeof mod.apply === 'function') {
+          const defs = []
+          await mod.apply({
+            tools: { register: (d) => defs.push(d) },
+            on: () => {},
+            effect: (fn) => (typeof fn === 'function' ? fn() : undefined),
+            logger: () => ({ info() {}, warn() {} }),
+          }, {})
+          for (const def of defs) {
+            const { ok, violations } = checkRawToolContract(def, def.name ?? 'unnamed_tool')
+            if (!ok) suggestions.push({ kind: 'contract', detail: violations.join('；') })
+          }
+        }
+      } catch {
+        suggestions.push({ kind: 'entry-load', detail: 'index.js 无法在当前环境加载（可能依赖宿主服务）——契约自检跳过，可在宿主 profile 里用 dsh-thunderforge/contract 复核' })
+      }
+
+      return { ok: suggestions.length === 0, dir: root, template, suggestions, checkedAgainst: `thunderforge-scaffold 最新模板（${template}）` }
+    },
   })
 }

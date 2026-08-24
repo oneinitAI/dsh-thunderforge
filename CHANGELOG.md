@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.10 (2026-08-24)
+
+- **骨架 upgrade 器（R7）**：新增 `thunderforge_upgrade` 工具——对比存量骨架与最新模板（文件清单 / thunderforge.debug.json 埋点声明 / 工具契约自检），输出迁移建议清单，**只建议不代改**；scaffold 引擎现注册双工具。
+- **llm-adapter 模板（R8）**：第四类模板——最小合规 LLM 适配器（两步协议 prepareCall → adapterCall.stream + providerInfo/retryPolicy 挂点 + 单步 stream 兜底），把 0.1.7 事故沉淀的真机协议知识直接产品化；生成即冒烟。
+- **debugger 增量快照（R10）**：`op=watch` 按 `since_ts` 返回窗口内的新事件瀑布 + `next_since_ts` 轮询锚点——长任务调试不必等会话结束拉全量。
+- **MCP 双端暴露（R9）**：新增 `mcp.mjs` 入口，手写 stdio JSON-RPC 子集（initialize/tools/list/tools/call）把 scaffold/upgrade/debugger/profile/release 五工具暴露给非 dsh 宿主（Claude Code 等）；零依赖红线守住（不用 MCP SDK），工具 schema 与引擎同源不漂移；集成测试走真实子进程全链路。
+- **dsh-buddy 渐进式披露（R11）**：表达模式与装唐完整规程拆入 `references/patterns.md`（按需加载）；新增「画像摘要导出」条款（用户可查/纠/重置，不主动落盘）；buddy 独立仓库同步至 v0.4.0（`617daa1`）。
+- `node --test` 56/56。
+
 ## 0.1.9 (2026-08-24)
 
 - **新增契约自检库 `dsh-thunderforge/contract`（R6）**：`checkRawToolContract(def)` 把 ctx.tools.register 的真机硬性规则（output 必填、schema 类型白名单、'json' 糖拒绝、additionalProperties 开放性、DSL required 残留、未知关键字）固化为零依赖纯函数——违规以中文清单返回、每条带修法提示。用户的插件发布前一行代码自检，不必等真机 boot 爆雷；test/tool-contract.test.mjs 改为吃自己的狗粮（规则同源不漂移）；骨架 README 补自检指引。

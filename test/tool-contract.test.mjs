@@ -10,13 +10,14 @@ import { checkRawToolContract } from '../src/contract/index.js'
 import { apply as applyScaffold } from '../src/scaffold/index.js'
 import { apply as applyDebugger } from '../src/debugger/index.js'
 import { apply as applyProfile } from '../src/profile/index.js'
+import { apply as applyRelease } from '../src/release/index.js'
 import { scaffoldFiles } from '../src/scaffold/templates.js'
 
-function collect(apply, name) {
+function collectAll(apply, name) {
   const defs = []
   apply({ tools: { register: (d) => defs.push(d) } })
-  assert.equal(defs.length, 1, `${name} 应注册恰好 1 个工具`)
-  return defs[0]
+  assert.ok(defs.length >= 1, `${name} 应至少注册 1 个工具`)
+  return defs
 }
 
 function assertCompliant(tool, source) {
@@ -24,10 +25,11 @@ function assertCompliant(tool, source) {
   assert.equal(ok, true, `${source} 违反真机契约：\n${violations.join('\n')}`)
 }
 
-test('真机契约：scaffold/debugger/profile 三个工具全部合规', () => {
-  assertCompliant(collect(applyScaffold, 'scaffold'), 'thunderforge_scaffold')
-  assertCompliant(collect(applyDebugger, 'debugger'), 'thunderforge_debugger')
-  assertCompliant(collect(applyProfile, 'profile'), 'thunderforge_profile')
+test('真机契约：scaffold/upgrade/debugger/profile/release 全部工具合规', () => {
+  for (const def of collectAll(applyScaffold, 'scaffold')) assertCompliant(def, def.name)
+  for (const def of collectAll(applyDebugger, 'debugger')) assertCompliant(def, def.name)
+  for (const def of collectAll(applyProfile, 'profile')) assertCompliant(def, def.name)
+  for (const def of collectAll(applyRelease, 'release')) assertCompliant(def, def.name)
 })
 
 test('真机契约：tool 模板生成的工具合规（写入临时目录校验）', async () => {

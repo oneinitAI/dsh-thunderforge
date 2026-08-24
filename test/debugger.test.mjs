@@ -126,6 +126,28 @@ test('waterfall 双数据源按时间对齐且 capture 行带文件引用', asyn
   }
 })
 
+test('watch 增量快照：since_ts 之后的事件可见，未来窗口为空并带 next_since_ts', async () => {
+  const { root, captureDir } = await fixture()
+  const previous = process.env.DSH_HOME
+  process.env.DSH_HOME = root
+  try {
+    const [tool] = mockCtx()
+    // fixture 事件在 T0 与 T0+100 之间；取 T0+50 为窗口起点 → 只见后半段
+    const out = await tool.execute({ op: 'watch', capture_dir: captureDir, since_ts: T0 + 50 })
+    assert.ok(out.newRows > 0)
+    assert.equal(typeof out.next_since_ts, 'number')
+    assert.ok(out.text.includes('session'))
+    // 未来窗口：无新事件但有轮询锚点
+    const idle = await tool.execute({ op: 'watch', capture_dir: captureDir, since_ts: Date.now() + 5_000 })
+    assert.equal(idle.newRows, 0)
+    assert.match(idle.hint, /无新事件/)
+  } finally {
+    if (previous === undefined) delete process.env.DSH_HOME
+    else process.env.DSH_HOME = previous
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
 test('sessions 与找不到会话时的错误值', async () => {
   const { root } = await fixture()
   const previous = process.env.DSH_HOME

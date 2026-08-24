@@ -4,7 +4,7 @@
 // 上游 dsh-plugin-dev-skills 为 MIT（台账见 LICENSES/README.md）。
 import { VERSION } from '../capture/core.js'
 
-export const TEMPLATES = ['tool', 'events', 'webui']
+export const TEMPLATES = ['tool', 'events', 'webui', 'llm-adapter']
 export const PLUGIN_NAME_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 function packageJson({ pkgName, description }) {
@@ -63,7 +63,9 @@ function readme({ pluginName, pkgName, template, toolName }) {
       ? `- 演示工具 \`${toolName}\` 已注册（原始 JSON Schema 写法，零依赖）\n- 升级为 \`defineTool\` 类型化写法：查 dsh-plugin-dev 技能 references/tools.md`
       : template === 'events'
         ? '- 已挂 tools/pre-execute 门禁（waterfall，记得调用 next()）；替换成你的策略\n- 事件系统五种分发模式：查 dsh-plugin-dev 技能 references/events.md'
-        : '- 已订阅 session/event 文本增量并汇入 debugChunks；把 render 接到你的 UI\n- UI 插件形态参考：查 dsh-plugin-dev 技能 references/plugin-forms.md'
+        : template === 'llm-adapter'
+          ? `- 两步协议适配器已就位（prepareCall → adapterCall.stream，LlmRuntime 主路径）\n- 把 streamWithSnapshot 里的 TODO 替换为对你的提供方端点的真实调用；apiKey 从你的凭证来源解析\n- 适配器协议细节与 capture 接入：查 dsh-plugin-dev 技能 references/adapters 相关篇目`
+          : '- 已订阅 session/event 文本增量并汇入 debugChunks；把 render 接到你的 UI\n- UI 插件形态参考：查 dsh-plugin-dev 技能 references/plugin-forms.md'
   return `# dsh-${pluginName}
 
 由 ThunderForge scaffold 生成的 DSH 插件骨架（模板：\`${template}\`）。
@@ -187,6 +189,88 @@ export function apply(ctx) {
 `
 }
 
+// R8 llm-adapter 模板：最小合规 LLM 适配器（两步协议 prepareCall → adapterCall.stream）。
+// 协议要点来自 dsh 0.1.1-rc.2 真机实证（CHANGELOG 0.1.7）：LlmRuntime 主路径走
+// adapter.prepareCall(provider, model, signal) 取 { model, stream } 再 dispatch，
+// 只实现单步 stream() 的适配器不会被主路径调用。
+function llmAdapterIndex({ pluginName, providerId }) {
+  return `// 由 ThunderForge scaffold 生成的最小 LLM 适配器骨架（零依赖，两步协议）。
+// 协议要点（dsh 0.1.1-rc.2 实证）：
+//   - registerAdapter(['${providerId}'], adapter) 每个提供方路由仅一个适配器，重复注册抛异常
+//   - LlmRuntime 主调用路径：adapter.prepareCall(provider, model, signal) → adapterCall.stream(options)
+//   - 错误两条路径（抛出 / finish error chunk）都必须保持原语义；apiKey 从你的凭证来源解析
+export const name = '${pluginName}'
+export const inject = ['llm']
+
+export function apply(ctx) {
+  const adapter = {
+    providerInfo: (provider) => ({ id: provider, name: '${pluginName} provider' }),
+    providerRetryPolicy: () => null,
+    resolveModel: async (model) => model,
+    listModels: async () => [],
+
+    // 两步协议主入口：返回的 adapterCall.stream 才是 LlmRuntime 实际调用的流
+    prepareCall(provider, model, _signal) {
+      return Promise.resolve({
+        model: { id: model, name: model, inputModalities: ['text'], context: { contextWindow: 8192 } },
+        stream: (options) => this.streamWithSnapshot(options),
+      })
+    },
+
+    // TODO: 替换为对你的提供方 HTTP 端点的真实调用（OpenAI-compatible / 自研协议）
+    async *streamWithSnapshot(options) {
+      yield { type: 'block-start', index: 0, blockType: 'text' }
+      yield { type: 'text-delta', index: 0, text: 'TODO: stream from ${providerId}' }
+      yield { type: 'block-end', index: 0, block: { type: 'text', text: 'TODO: stream from ${providerId}' } }
+      yield { type: 'usage', usage: { inputTokens: 0, outputTokens: 0 } }
+      yield { type: 'finish', reason: { kind: 'stop' } }
+      void options
+    },
+
+    // 单步兜底：旧调用方/直连场景仍可用（与 prepareCall 返回同一流语义）
+    stream(options) {
+      return this.streamWithSnapshot(options)
+    },
+  }
+  ctx.llm.registerAdapter(['${providerId}'], adapter)
+}
+`
+}
+
+function llmAdapterTest({ pluginName, providerId }) {
+  return `import test from 'node:test'
+import assert from 'node:assert/strict'
+import { apply, name } from '../index.js'
+
+test('适配器注册到 ${providerId} 路由且满足两步协议', async () => {
+  const registered = []
+  apply({ llm: { registerAdapter: (providers, adapter) => registered.push({ providers, adapter }) } })
+  assert.equal(name, '${pluginName}')
+  assert.equal(registered.length, 1)
+  assert.deepEqual(registered[0].providers, ['${providerId}'])
+  const adapter = registered[0].adapter
+  assert.equal(typeof adapter.prepareCall, 'function', '必须实现两步协议 prepareCall')
+  const call = await adapter.prepareCall('${providerId}', 'demo-model')
+  assert.equal(typeof call.stream, 'function', 'prepareCall 必须返回带 stream 的 adapterCall')
+  assert.ok(call.model && typeof call.model.id === 'string', 'adapterCall.model 必须携带模型元数据')
+
+  let finish = null
+  for await (const chunk of call.stream({ messages: [] })) {
+    if (chunk.type === 'finish') finish = chunk.reason
+  }
+  assert.deepEqual(finish, { kind: 'stop' }, '流必须以 finish 终态收尾')
+})
+
+test('单步 stream 兜底可用（旧调用方兼容）', async () => {
+  const registered = []
+  apply({ llm: { registerAdapter: (p, a) => registered.push(a) } })
+  const chunks = []
+  for await (const c of registered[0].stream({})) chunks.push(c.type)
+  assert.ok(chunks.includes('finish'))
+})
+`
+}
+
 function toolTest({ pluginName, toolName }) {
   return `import test from 'node:test'
 import assert from 'node:assert/strict'
@@ -281,11 +365,13 @@ export function scaffoldFiles({ pluginName, template, description }) {
   }
   const pkgName = `dsh-${pluginName}`
   const toolName = `${pluginName.replaceAll('-', '_')}_greet`
+  const providerId = pluginName.replaceAll('-', '_')
   const ctx = {
     pluginName,
     pkgName,
     template,
     toolName,
+    providerId,
     description: description ?? `DSH plugin skeleton (${template}) forged by ThunderForge`,
     now: new Date().toISOString(),
   }
@@ -293,11 +379,13 @@ export function scaffoldFiles({ pluginName, template, description }) {
     tool: toolIndex,
     events: eventsIndex,
     webui: webuiIndex,
+    'llm-adapter': llmAdapterIndex,
   }
   const tests = {
     tool: toolTest,
     events: eventsTest,
     webui: webuiTest,
+    'llm-adapter': llmAdapterTest,
   }
   return [
     ['package.json', packageJson(ctx)],

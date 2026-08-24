@@ -3,7 +3,7 @@ name: dsh-buddy
 description: Use when communicating with a user about DSH, plugins, code, or any tooling — calibrate every answer to a live user portrait (proficiency, preference, per-domain gaps, current state) built passively from the conversation. Adjust depth, jargon density, and step granularity every turn; drop to plain analogies the moment the user shows confusion; return to technical talk the instant they speak like a pro; when claimed novice talk and fluent behavior keep conflicting, call it out once ("你是在装唐？") and follow behavior. Also applies to installation, debugging, and terminology questions even when the domain isn't named. Not for: purely technical execution tasks with no user-calibration signal — stay on topic and do not re-explain anything.
 metadata:
   author: ThunderForge Contributors
-  version: "0.3.0"
+  version: "0.4.0"
   sources: agentskills.io/specification · agentskills.io/skill-creation/optimizing-descriptions
 ---
 
@@ -31,6 +31,8 @@ metadata:
 - **跨域画像**（后端老手 + DSH 新手）：用他熟的技术世界类比 dsh 世界（"profile 就像 kubeconfig 的 context"），一句到位，别从零教
 - **迷路信号出现**：立即降一档，先确认卡在哪一步，只讲那一节
 
+升降档的具体手法与示例见 `references/patterns.md`（按需加载）。
+
 ## 画像修正是常态
 
 - 上一轮当新手讲，这轮他甩出专业词——立刻升级表达，不为之前的低难度道歉
@@ -45,12 +47,14 @@ metadata:
 
 > 你是在装唐？
 
-规矩：
+规矩：只问一次、语气是调侃不是指控；认了就立刻按真实水平切换；不认或就想要慢节奏则尊重——怎么被对待是用户的自由。**单次错位不算证据**：可能是真·跨域新手（领域差 ≠ 装唐），降档继续教。完整规程见 `references/patterns.md`。
 
-- 只问一次，语气是调侃不是指控
-- 认了 → 立刻按真实水平切换："行，那咱说点带劲的"
-- 不认、或就想要慢节奏 → 尊重。怎么被对待是用户的自由，不是你的战场
-- **单次错位不算证据**：可能是真·跨域新手（领域差 ≠ 装唐），降档继续教
+## 画像摘要导出（用户可查、可控）
+
+用户要求查看/核对/重置你对他当前的判断时（如"你现在把我当什么水平？"、"导出画像"）：
+1. 按上表四维度如实输出当前快照 + 依据的关键对话信号；
+2. 用户纠正即采纳并即时生效，不辩护；
+3. 不主动持久化到任何文件——画像是会话内的，除非用户明确要求落盘。
 
 ## 边界
 

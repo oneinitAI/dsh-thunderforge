@@ -4,4 +4,5 @@ payloads/
 *.log
 .DS_Store
 dsh-snake-game/
-dsh-buddy/
+/dsh-buddy/
+.omo/

@@ -57,13 +57,14 @@ export function apply(ctx) {
       properties: {
         op: {
           type: 'string',
-          enum: ['sessions', 'summary', 'waterfall'],
-          description: 'sessions=列出可用会话，summary=单会话概览，waterfall=对齐时间线',
+          enum: ['sessions', 'summary', 'waterfall', 'watch'],
+          description: 'sessions=列出可用会话，summary=单会话概览，waterfall=对齐时间线，watch=增量快照（自 since_ts 以来的新事件，适合长任务轮询观察）',
         },
         session: { type: 'string', description: '会话日志路径或 id 片段；默认最新会话' },
         capture_dir: { type: 'string', description: 'capture 输出目录，默认 thunderforge-capture 配置值' },
         limit: { type: 'number', description: 'waterfall 显示行数，默认 80' },
         offset: { type: 'number', description: 'waterfall 起始偏移，默认 0' },
+        since_ts: { type: 'number', description: 'watch 专用：只看该毫秒时间戳之后的事件；返回值带 next_since_ts 供下次轮询传入' },
         },
         required: ['op'],
       },
@@ -96,6 +97,24 @@ export function apply(ctx) {
 
         if (args.op === 'summary') {
           return { file: target.file, ...summarize(header, events, turns, { rows: indexRows, corrupt }) }
+        }
+
+        // R10 增量快照：自 since_ts 以来的会话里程碑 + capture 调用（长任务轮询观察，
+        // 不必等会话结束再拉全量 waterfall）。返回 next_since_ts 供下次轮询传入。
+        if (args.op === 'watch') {
+          const since = Number.isFinite(args.since_ts) ? args.since_ts : Date.now() - 60_000
+          const recentEvents = events.filter((e) => typeof e.time === 'number' && e.time >= since)
+          const recentCaptures = indexRows.filter((row) => row.timeMs >= since)
+          const timeline = buildTimeline(recentEvents, recentCaptures)
+          const now = Date.now()
+          return {
+            file: target.file,
+            text: renderTimeline(timeline, { limit: args.limit ?? 40 }),
+            newRows: timeline.length,
+            captureNew: recentCaptures.length,
+            next_since_ts: now,
+            hint: timeline.length === 0 ? '窗口内无新事件——稍后用同一 next_since_ts 再轮询' : undefined,
+          }
         }
 
         const timeline = buildTimeline(events, indexRows)

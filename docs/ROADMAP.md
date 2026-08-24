@@ -15,11 +15,11 @@
 | P0 | R4 工程债三件套 | DEP0190 / debugger 零测试覆盖 / capture index 损坏行 | ✅ 完成（v0.1.8） |
 | P1 | R5 thunderforge_release 发布门禁 | "发布"环节目前是闭环里最空的一环 | ✅ 完成（v0.1.9） |
 | P1 | R6 契约自测库导出 | 把 tool-contract 的血泪教训变成用户插件的一行断言 | ✅ 完成（v0.1.9） |
-| P2 | R7 骨架 upgrade 器 | dsh 协议升级时用户插件怎么跟进 | 候选 |
-| P2 | R8 llm-adapter 模板 | evals 里出现过的真实查询场景，prepareCall 知识可直接沉淀 | 候选 |
-| P2 | R9 MCP 双端暴露 | 非 dsh 宿主也能用 scaffold/debugger | 候选 |
-| P2 | R10 debugger live watch | 调试长任务不必等会话结束 | 候选 |
-| P2 | R11 dsh-buddy 渐进式披露 | 主文件聚焦，案例库按需加载 | 候选 |
+| P2 | R7 骨架 upgrade 器 | dsh 协议升级时用户插件怎么跟进 | ✅ 完成（v0.1.10） |
+| P2 | R8 llm-adapter 模板 | evals 里出现过的真实查询场景，prepareCall 知识可直接沉淀 | ✅ 完成（v0.1.10） |
+| P2 | R9 MCP 双端暴露 | 非 dsh 宿主也能用 scaffold/debugger | ✅ 完成（v0.1.10） |
+| P2 | R10 debugger live watch | 调试长任务不必等会话结束 | ✅ 完成（v0.1.10） |
+| P2 | R11 dsh-buddy 渐进式披露 | 主文件聚焦，案例库按需加载 | ✅ 完成（v0.1.10） |
 
 ---
 
