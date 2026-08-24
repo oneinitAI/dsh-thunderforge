@@ -85,9 +85,19 @@ AI: (thunderforge_profile) → tf-dev-demo 已就绪
 
 ## 📦 状态
 
-- ✅ M0–M3 全部完成，`node --test` 28/28（含三模板生成即冒烟）
-- ✅ `npm pack` 433 文件验证：源码/知识库/许可证全在，dev 文件全排除
+- ✅ `node --test` 31/31（含真机契约测试）；三模板生成即冒烟
+- ✅ 真机验收：`dsh plugin add` + `--dump-config` 全行加载（含对真实 boot 报错的修复，见 CHANGELOG）
 - 🙋 live 端到端（对话 → 工具调用 → capture 落盘 → 瀑布对齐）欢迎你亲手试：`dsh --profile <你的profile> "调用 thunderforge_scaffold ..."`
+
+## 📚 文档索引
+
+| 文档 | 内容 |
+|---|---|
+| [DEVELOPMENT](./docs/DEVELOPMENT.md) | 开发文档：架构决策（零依赖/层序/vendor）+ 代码地图 + 测试哲学 + 发布流程（**贡献者先读**） |
+| [PRD](./docs/PRD.md) | 分阶段产品计划与验收记录 |
+| [RELEASE](./docs/RELEASE.md) | 发布清单与一键发布 |
+| [NETWORK-NOTES](./docs/NETWORK-NOTES.md) | 网络问题手册（443 重置/TLS/大包/peer 警告） |
+| [CHANGELOG](./CHANGELOG.md) | 版本变更记录（含真 bug 因果） |
 
 ## 🙏 致谢与上游协议（必读）
 
