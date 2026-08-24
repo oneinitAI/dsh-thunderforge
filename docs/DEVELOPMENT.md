@@ -175,7 +175,36 @@ node scripts/release.mjs patch --dry-run # 只看计划
 - `--trust-remote`：远端提交不在本地历史时做血统校验（tree sha 是否在 reflog 中）；`--allow-divergent`：已人工验证时显式跳过
 - Node fetch 遇本地代理 TLS 拦截 → 自动带 `--use-system-ca` 重启自身
 
-## 9. 贡献指南（简版）
+## 9. 技能写作规范（Skill Authoring）
+
+**权威依据**：Agent Skills 官方规范与官方指南：
+- [Specification](https://agentskills.io/specification)（frontmatter 字段、命名规则、渐进式披露）
+- [Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions)（触发评测方法论）
+
+本项目的两个自研技能（`skills/thunderforge-dev`、`skills/dsh-buddy`，独立仓库 dsh-buddy 同源）按此规范重写（v0.3.0）。**新技能必须遵守以下规则**：
+
+### 9.1 frontmatter 规范
+
+- `name`：kebab-case（`^[a-z0-9]+(?:-[a-z0-9]+)*$`），≤64 字符，与目录同名，禁止大写/连字符结尾/连续连字符
+- `description`：** imperative 动词开头**（"Use when..."），同时写清「做什么 + 何时用 + 何时不用（边界）」，≤1024 字符，**单行**（本项目 frontmatter 解析器按单行读取）
+- 触发优化三原则（官方指南）：**以用户意图为中心**（不是内部机制）、**宁可偏 pushy**（显式列出隐式触发场景——用户没点名的也算）、**边界写清**（"Not for..." 防误触发）
+- `metadata`：author/version 必填，可加 sources 记录方法论出处
+
+### 9.2 正文与渐进式披露
+
+- 主 `SKILL.md` 目标 **< 500 行**；详细资料（API 参考、完整规则集）放 `references/` 按需加载——模型只在需要时拉取
+- 正文结构建议：任务触发后第一件事 = 决策表/判断流程（本项目都是「索引型」技能，先决定查哪一层）
+- `evals/trigger-queries.json` 强制存在：约 20 条查询，**正例覆盖直接点名/隐式描述/多步工作流，负例一半无关领域、一半易混淆近邻**（近邻比无关更有验证价值）
+- **训练/验证集划分（60/40 防过拟合）**：`train_queries` 用于定位失败、指导改 description；`validation_queries` 只在确认泛化时使用，**禁止用验证集结果进修改过程**
+- 改 description 后：train 集指导修改（正例漏触发→过窄，补场景；负例误触→过宽，写边界），**不抄失败查询的关键词**（找它代表的类别）；每次修改把通过率记进提交信息（上游惯例：`evals: train 11/11, validation 8/8`）
+
+### 9.3 本项目落地记录
+
+- `thunderforge-dev`：description 重写为 "Use when developing, reviewing, debugging..."，正例含隐式（"给 agent 加一个能读文件的工具"不提 dsh）、负例含近邻（Koishi / Claude Code hooks / Chrome 扩展 / 通用编程）
+- `dsh-buddy`：description 重写为 "Use when communicating with a user about DSH, plugins, code..."，负例含专业流畅（无校准信号不触发）
+- 两个技能的触发评测集均已按 60/40 拆为 train/validation 并更新 methodology 字段
+
+## 10. 贡献指南（简版）
 
 1. **先读本文件**，尤其 §2 决策与红线
 2. 改动尽量小、可回滚；每个版本补 CHANGELOG

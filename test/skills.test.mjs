@@ -61,16 +61,19 @@ test('frontmatter 解析 name/description 并剥离元数据块', () => {
   assert.ok(skill.body.length > 500, '正文应保留完整内容')
 })
 
-test('入口技能评测集完整且正负例齐备', async () => {
+test('入口技能评测集完整且正负例齐备（train/validation 双集）', async () => {
   const { readFile } = await import('node:fs/promises')
   const evals = JSON.parse(
     await readFile(join(import.meta.dirname, '..', 'skills', 'thunderforge-dev', 'evals', 'trigger-queries.json'), 'utf8'),
   )
   assert.equal(evals.skill, 'thunderforge-dev')
-  const positives = evals.queries.filter((q) => q.should_trigger)
-  const negatives = evals.queries.filter((q) => !q.should_trigger)
-  assert.ok(positives.length >= 12, `正例应不少于 12，实际 ${positives.length}`)
-  assert.ok(negatives.length >= 6, `负例应不少于 6，实际 ${negatives.length}`)
+  const all = [...(evals.train_queries ?? []), ...(evals.validation_queries ?? [])]
+  const positives = all.filter((q) => q.should_trigger)
+  const negatives = all.filter((q) => !q.should_trigger)
+  assert.ok(evals.train_queries.length >= 8, `train 集应有 ≥8 条，实际 ${evals.train_queries.length}`)
+  assert.ok(evals.validation_queries.length >= 4, `validation 集应有 ≥4 条，实际 ${evals.validation_queries.length}`)
+  assert.ok(positives.length >= 8, `总正例应 ≥8，实际 ${positives.length}`)
+  assert.ok(negatives.length >= 6, `总负例应 ≥6，实际 ${negatives.length}`)
 })
 
 test('入口技能正文索引到全部工具与知识层', () => {
@@ -87,4 +90,24 @@ test('入口技能正文索引到全部工具与知识层', () => {
     assert.ok(skill.body.includes(keyword), `入口技能应索引 ${keyword}`)
   }
   assert.ok(skill.body.includes('之前'), '应含 capture 层序提示')
+})
+
+test('技能遵循正统规范（imperative description + 评测集 train/validation）', async () => {
+  const { readFile } = await import('node:fs/promises')
+  const { join } = await import('node:path')
+  for (const dir of ['thunderforge-dev', 'dsh-buddy']) {
+    const skill = loadSkillDir(dir)
+    assert.ok(skill.description.startsWith('Use when'), `${dir}: description 应以 imperative \"Use when\" 开头`)
+    assert.ok(skill.description.includes('Not for'), `${dir}: 应写清 Not for 边界防误触发`)
+    assert.ok(skill.body.length < 10000, `${dir}: 主 SKILL.md 应控制在渐进式披露的紧凑篇幅`)
+    const evals = JSON.parse(
+      await readFile(join(import.meta.dirname, '..', 'skills', dir, 'evals', 'trigger-queries.json'), 'utf8'),
+    )
+    assert.ok(Array.isArray(evals.train_queries), `${dir}: 评测集应含 train_queries（防过拟合划分）`)
+    assert.ok(Array.isArray(evals.validation_queries), `${dir}: 评测集应含 validation_queries`)
+    const positives = [...evals.train_queries, ...evals.validation_queries].filter((q) => q.should_trigger)
+    const negatives = [...evals.train_queries, ...evals.validation_queries].filter((q) => !q.should_trigger)
+    assert.ok(positives.length >= 8, `${dir}: 正例应 ≥8（含隐式触发）`)
+    assert.ok(negatives.length >= 6, `${dir}: 负例应 ≥6（含易混淆近邻）`)
+  }
 })

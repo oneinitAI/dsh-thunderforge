@@ -3,3 +3,5 @@ node_modules/
 payloads/
 *.log
 .DS_Store
+dsh-snake-game/
+dsh-buddy/

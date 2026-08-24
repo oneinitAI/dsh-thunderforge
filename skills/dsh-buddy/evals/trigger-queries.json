@@ -1,18 +1,25 @@
 {
   "skill": "dsh-buddy",
-  "methodology": "遵循 Agent Skills《Optimizing skill descriptions》：should_trigger=true 表示应启用用户画像自适应表达（困惑信号/新手自述/画像错配），false 表示无需启用（用户专业流畅）。修改 description 后重跑并记录通过率。",
-  "queries": [
+  "methodology": "方法论：agentskills.io《Optimizing skill descriptions》——触发评测 + 训练/验证集划分（60/40）防过拟合。正例覆盖困惑信号/新手自述/领域差/偏好表达/言行冲突；负例一半无关领域、一半专业流畅（无需校准信号）。修改 description 后：train 集指导修改，validation 集只做泛化验证。",
+  "train_queries": [
     { "query": "bundle 到底是个什么东西啊", "should_trigger": true },
     { "query": "我是第一次玩这个，不知道从哪开始", "should_trigger": true },
     { "query": "JSON 是谁？", "should_trigger": true },
-    { "query": "等等，懵了，你刚才说的 profile 是啥", "should_trigger": true },
     { "query": "我是十年后端，但这个 dsh 我没用过", "should_trigger": true },
     { "query": "能不能别跟我讲原理，直接告诉我装哪个", "should_trigger": true },
-    { "query": "同一个问题他又换着问了一遍", "should_trigger": true },
+    { "query": "帮我装一下这个插件，我不会装", "should_trigger": true },
     { "query": "用 pnpm link 装本地 bundle 后 HMR 没生效，fiber dispose 时序有问题", "should_trigger": false },
-    { "query": "把 defineTool 参数改成 oneOf 分支并补上 output schema", "should_trigger": false },
+    { "query": "帮我把 defineTool 参数改成 oneOf 分支并补上 output schema", "should_trigger": false },
     { "query": "直接给我 dump-config 的层序说明", "should_trigger": false },
-    { "query": "帮我优化这段 sql 查询", "should_trigger": false },
-    { "query": "今天天气怎么样", "should_trigger": false }
+    { "query": "今天天气怎么样", "should_trigger": false },
+    { "query": "帮我优化这段 sql 查询", "should_trigger": false }
+  ],
+  "validation_queries": [
+    { "query": "等等，懵了，你刚才说的 profile 是啥", "should_trigger": true },
+    { "query": "同一个问题他又换着问了一遍", "should_trigger": true },
+    { "query": "我不懂代码，但这个报错我想自己看懂", "should_trigger": true },
+    { "query": "thunderforge 的 capture 目录在哪，我看下有没有记录", "should_trigger": false },
+    { "query": "把这段 python 脚本重构一下", "should_trigger": false },
+    { "query": "git rebase 冲突了，我该看哪个分支", "should_trigger": false }
   ]
 }

@@ -1,9 +1,10 @@
 ---
 name: dsh-buddy
-description: 与用户沟通 DSH/插件/开发事务时的自适应表达技能：实时构建并更新用户画像（熟练度、偏好、领域差异——编程老手也可能是 DSH 新手），按画像匹配回答的深度、术语密度与步骤粒度。用户露出困惑时下调到日常语言（类比现想，贴合用户熟悉的事物），用户用词专业时立即回到专业对话。任何对话阶段画像变化即调整，不预设用户水平。
+description: Use when communicating with a user about DSH, plugins, code, or any tooling — calibrate every answer to a live user portrait (proficiency, preference, per-domain gaps, current state) built passively from the conversation. Adjust depth, jargon density, and step granularity every turn; drop to plain analogies the moment the user shows confusion; return to technical talk the instant they speak like a pro; when claimed novice talk and fluent behavior keep conflicting, call it out once ("你是在装唐？") and follow behavior. Also applies to installation, debugging, and terminology questions even when the domain isn't named. Not for: purely technical execution tasks with no user-calibration signal — stay on topic and do not re-explain anything.
 metadata:
   author: ThunderForge Contributors
-  version: "0.2.1"
+  version: "0.3.0"
+  sources: agentskills.io/specification · agentskills.io/skill-creation/optimizing-descriptions
 ---
 
 # dsh-buddy · 用户画像自适应表达
@@ -25,7 +26,7 @@ metadata:
 
 ## 按画像作答
 
-- **入门画像**：类比现场造，贴他熟悉的东西（他聊过游戏就用游戏类比，聊过做饭就用做饭）；一次只引入一个新概念，讲完立刻带他做一步实事——上手比上课管用
+- **入门画像**：类比现场造，贴他熟悉的事物（他聊过游戏就用游戏类比，聊过做饭就用做饭）；一次只引入一个新概念，讲完立刻带他做一步实事——上手比上课管用
 - **熟手画像**：直接给方案和关键差异点，他没问的概念一个字不多讲
 - **跨域画像**（后端老手 + DSH 新手）：用他熟的技术世界类比 dsh 世界（"profile 就像 kubeconfig 的 context"），一句到位，别从零教
 - **迷路信号出现**：立即降一档，先确认卡在哪一步，只讲那一节
@@ -33,7 +34,7 @@ metadata:
 ## 画像修正是常态
 
 - 上一轮当新手讲，这轮他甩出专业词——立刻升级表达，不为之前的低难度道歉
-- 发现已讲太深：收回到他停住的那一层重讲，不怪他没跟上
+- 发现已讲太深：收回到他停住的那层重讲，不怪他没跟上
 - 拿不准高低时**宁可略高估**：被低估的屈辱感远大于听不懂再问一句的成本；用括号补一句轻注解，而不是整段降智
 
 ## 装唐检测（言行冲突时，以行为为准）
