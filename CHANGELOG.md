@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.7 (2026-08-24)
+
+- **修复 capture 在 dsh 0.1.1-rc.2 上完全失效（真 bug，web 会话复现）**：dsh 的 `LlmRuntime` 主调用路径是两步协议 `adapter.prepareCall(provider, model, signal)` → `adapterCall.stream(options)`，而 capture 的 `wrapAdapter` 只包装了单步 `adapter.stream()`——官方 `dsh-llm-deepseek` / `dsh-llm-pi-ai` 适配器都实现 `prepareCall`，注册进 LlmRuntime 后走的是 `prepareCall().stream()`，捕获流永远不被调用。后果：web 会话 4k+ chunk、13 次工具调用，`thunderforge-capture` 目录零落盘（插件激活、`registerAdapter` 包装均正常，仅协议钩错方法，mock 老协议测不出来）。修复：`wrapAdapter` 同时覆盖两步协议——`Object.create` 包一层 `prepareCall` 返回的 adapterCall 并重写其 `stream`（不改原对象，保留 `model` 等）；保留单步 `stream` 兼容。
+- **补上集成测试盲区**：原 `test/capture.test.mjs` 只测 core 层（CaptureStore/聚合/清洗），未测 `apply`/`wrapAdapter` 集成。新增 4 项：两步协议落盘、两步协议 stream 抛错路径、单步 stream 协议兼容、provider 过滤透传。`node --test` 36/36。
+
 ## 0.1.6 (2026-08-23)
 
 - **修复 raw 工具注册契约违规（真机报错驱动）**：0.1.5 去依赖化时对 raw 注册的 `output` 要求删过头/用错糖，真机 boot 报两类错——`must declare output { schema, render, presentationMeta? }`（scaffold 缺 output）与 `schema.type must be one of object/array/string/number/integer/boolean/null`（debugger/profile 用了 defineTool 专用的 `{type:'json'}`）。修复：三个工具 + tool 模板全部补齐合规 output；debugger/profile 的参数从 DSL 属性映射改为完整 object schema（含顶层 required、additionalProperties）

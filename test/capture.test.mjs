@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { apply } from '../src/capture/index.js'
 import { CaptureStore, createAggregator, initConfig, sanitize } from '../src/capture/core.js'
 
 test('initConfig 填充默认值并解析输出目录', () => {
@@ -139,3 +140,138 @@ test('CaptureStore 按 maxFiles 轮转删除最旧捕获', async () => {
     await rm(dir, { recursive: true, force: true })
   }
 })
+
+// —— apply 集成测试：wrapAdapter 必须同时覆盖两步协议（prepareCall→adapterCall.stream）
+//    与单步 stream 协议。2026-08-24 真机复现：只包装 stream() 时，LlmRuntime 主路径
+//    走 prepareCall()，捕获静默落空（web 会话 4k+ chunk 零落盘）。——
+
+function fakeLlmContext(dir, config = {}) {
+  const registered = []
+  const llm = { registerAdapter: (providers, adapter) => registered.push({ providers, adapter }) }
+  const ctx = { llm, on: () => {}, logger: () => ({ info() {}, warn() {} }) }
+  apply(ctx, { dir, ...config })
+  return { registered, llm }
+}
+
+function twoStepAdapter({ fail = false } = {}) {
+  return {
+    providerInfo: (p) => ({ id: p, name: p }),
+    providerRetryPolicy: () => null,
+    resolveModel: async (m) => m,
+    listModels: async () => [],
+    prepareCall(provider, model) {
+      return Promise.resolve({
+        model: { id: model, name: model },
+        stream: async function* () {
+          if (fail) throw new Error('boom')
+          yield { type: 'block-end', index: 0, block: { type: 'text', text: 'hi' } }
+          yield { type: 'usage', usage: { inputTokens: 1, outputTokens: 1 } }
+          yield { type: 'finish', reason: { kind: 'stop' } }
+        },
+      })
+    },
+  }
+}
+
+const settle = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
+const captureFiles = async (dir) => (await readdir(dir)).filter((f) => f.endsWith('.json') && f !== 'index.jsonl')
+
+test('apply 包装 registerAdapter：两步协议（prepareCall→adapterCall.stream）调用落盘', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'tf-capture-'))
+  try {
+    const { registered, llm } = fakeLlmContext(dir)
+    const adapter = twoStepAdapter()
+    llm.registerAdapter(['test'], adapter)
+    const wrapped = registered[0].adapter
+    assert.notEqual(wrapped, adapter, '两步协议适配器必须被包装')
+    assert.equal(typeof wrapped.prepareCall, 'function')
+
+    const call = await wrapped.prepareCall('test', 'm1')
+    assert.equal(call.model.id, 'm1', 'Object.create 包装不破坏原 adapterCall.model')
+    assert.equal(typeof call.stream, 'function')
+    for await (const chunk of call.stream({ model: 'm1', messages: [] })) void chunk
+    await settle()
+
+    const files = await captureFiles(dir)
+    assert.equal(files.length, 1, '两步协议调用应落盘 1 个捕获文件')
+    const index = (await readFile(join(dir, 'index.jsonl'), 'utf8')).trim().split('\n')
+    assert.equal(index.length, 1)
+    assert.equal(JSON.parse(index[0]).file, files[0])
+    const payload = JSON.parse(await readFile(join(dir, files[0]), 'utf8'))
+    assert.equal(payload.capture.ok, true)
+    assert.equal(payload.capture.model, 'm1')
+    assert.equal(payload.response.blocks[0].text, 'hi')
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('两步协议 stream 抛错：捕获流标记失败、重新抛出并落盘', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'tf-capture-'))
+  try {
+    const { registered, llm } = fakeLlmContext(dir)
+    const adapter = twoStepAdapter({ fail: true })
+    llm.registerAdapter(['test'], adapter)
+    const wrapped = registered[0].adapter
+    const call = await wrapped.prepareCall('test', 'm1')
+    await assert.rejects(
+      async () => {
+        for await (const chunk of call.stream({ model: 'm1' })) void chunk
+      },
+      /boom/,
+    )
+    await settle()
+
+    const files = await captureFiles(dir)
+    assert.equal(files.length, 1)
+    const payload = JSON.parse(await readFile(join(dir, files[0]), 'utf8'))
+    assert.equal(payload.capture.ok, false)
+    assert.equal(payload.error.message, 'boom')
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('apply 包装 registerAdapter：单步 stream 协议仍兼容（老适配器）', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'tf-capture-'))
+  try {
+    const { registered, llm } = fakeLlmContext(dir)
+    const adapter = {
+      providerInfo: (p) => ({ id: p, name: p }),
+      providerRetryPolicy: () => null,
+      resolveModel: async (m) => m,
+      listModels: async () => [],
+      async *stream() {
+        yield { type: 'block-end', index: 0, block: { type: 'text', text: 'legacy' } }
+        yield { type: 'usage', usage: { inputTokens: 1, outputTokens: 1 } }
+        yield { type: 'finish', reason: { kind: 'stop' } }
+      },
+    }
+    llm.registerAdapter(['legacy'], adapter)
+    const wrapped = registered[0].adapter
+    assert.notEqual(wrapped, adapter)
+    assert.equal(typeof wrapped.stream, 'function')
+    for await (const chunk of wrapped.stream({ model: 'm1', messages: [] })) void chunk
+    await settle()
+
+    const files = await captureFiles(dir)
+    assert.equal(files.length, 1)
+    const payload = JSON.parse(await readFile(join(dir, files[0]), 'utf8'))
+    assert.equal(payload.response.blocks[0].text, 'legacy')
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('provider 过滤不命中时：适配器原样透传、不包装', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'tf-capture-'))
+  try {
+    const { registered, llm } = fakeLlmContext(dir, { providers: ['deepseek'] })
+    const adapter = twoStepAdapter()
+    llm.registerAdapter(['pi'], adapter)
+    assert.equal(registered[0].adapter, adapter, '不捕获的 provider 应原样透传')
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
