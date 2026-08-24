@@ -12,3 +12,5 @@
       name: dsh-thunderforge/debugger
     - id: thunderforge-profile
       name: dsh-thunderforge/profile
+    - id: thunderforge-release
+      name: dsh-thunderforge/release

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.9 (2026-08-24)
+
+- **新增契约自检库 `dsh-thunderforge/contract`（R6）**：`checkRawToolContract(def)` 把 ctx.tools.register 的真机硬性规则（output 必填、schema 类型白名单、'json' 糖拒绝、additionalProperties 开放性、DSL required 残留、未知关键字）固化为零依赖纯函数——违规以中文清单返回、每条带修法提示。用户的插件发布前一行代码自检，不必等真机 boot 爆雷；test/tool-contract.test.mjs 改为吃自己的狗粮（规则同源不漂移）；骨架 README 补自检指引。
+- **新增第六引擎 thunderforge-release（R5 发布门禁）**：`thunderforge_release` 工具对插件目录执行四道自动检查（node --test 冒烟 / 动态加载+mock ctx 的工具契约 / 零 harness 依赖铁律含源码扫描 / 版本与 CHANGELOG 一致性），输出结构化报告与剩余手动步骤——npm publish 与 OTP 永远留给维护者本人。项目血泪（Symbol 双实例、raw 契约、版本记档）从此是用户的自动门禁。
+- `node --test` 47/47。
+
 ## 0.1.8 (2026-08-24)
 
 - **capture 默认目录改到 DSH 数据根**（行为变更）：无 `dir` 配置时从 `./.thunderforge-capture`（进程 cwd）改为 `$DSH_HOME/thunderforge-capture`（无 DSH_HOME 时 `~/.dsh/thunderforge-capture`），与 sessions/profiles 同级、符合用户心智——真机排查时维护者都找错了位置。检测到旧目录有历史数据时输出一次性迁移提示；debugger 默认 capture_dir 自动跟随。

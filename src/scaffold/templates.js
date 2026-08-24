@@ -79,6 +79,10 @@ ${specifics}
 npm test        # 冒烟：加载校验 + node --test
 \`\`\`
 
+发布前建议自检工具定义是否符合真机契约（output 必填、schema 类型白名单、additionalProperties 等）：
+宿主安装 dsh-thunderforge 后可用 \`import { checkRawToolContract } from 'dsh-thunderforge/contract'\`，
+把注册的工具定义传入即可得到违规清单与修法提示。
+
 ## 调试埋点
 
 \`thunderforge.debug.json\` 声明了本骨架的埋点约定：宿主启用 thunderforge-capture 后，
