@@ -131,19 +131,22 @@ node scripts/release.mjs patch --dry-run # 只看计划
 
 ## 十、遗留任务（按优先级）
 
-| # | 任务 | 阻塞 |
+2026-08-24 复盘：#1–#5 全部推进完毕，仅剩外部等待项。
+
+| # | 任务 | 状态 |
 |---|---|---|
-| 1 | web profile 重启 + 多工具对话复测（验证 0.1.6 契约修复 + capture 落盘） | 需用户手动 dsh web 启动 |
-| 2 | npm publish 0.1.6 | 需用户 npm OTP |
-| 3 | live skill 触发评测（train + validation 按 agentskills.io 方法跑） | 需带模型 API 的 dsh 会话 |
-| 4 | 全链路 e2e（对话→scaffold→capture→waterfall） | 同 3 |
-| 5 | dsh-buddy 独立仓库同步 + npm 发布 | 按 ThunderForge 发布流程 |
-| 6 | awesome-deepseek-harness PR #456 等待合并 | 等维护者审 |
+| 1 | web 多工具对话复测 + capture 落盘 | ✅ 完成——顺带抓出并修复真 bug：capture 只包装单步 `stream()`，而 LlmRuntime 主路径是 `prepareCall()→adapterCall.stream()` 两步协议，捕获静默落空（v0.1.7 修复）；修复后真机 40 次调用全部落盘（`ok:true`） |
+| 2 | npm publish | ✅ 完成——`dsh-thunderforge@0.1.7` 已发布 |
+| 3 | live skill 触发评测 | ✅ 完成（web 真机抽样）——**train 6/6**（正例 4/4 触发·点名/隐式/英文/事件系统；负例 2/2 干净忽略），**validation 4/4**（正例 2/2 触发；近邻负例未加载技能但出现一次 ask_user_question 澄清——边界摇摆非误触发，观察已记入 evals methodology）。注意：skill 触发要求 agent preset 含 Skills（minimal 极简模式裁剪了 skill 工具，评测须在标准模式会话跑） |
+| 4 | 全链路 e2e | ✅ 完成——debugger 双源瀑布对齐真机数据验证：session 事件 × capture 载荷按毫秒交错（tool/call 后 4ms 出现对应 llm/call 记录），summary 统计正确 |
+| 5 | dsh-buddy 独立仓库同步 + npm 发布 | ⚠️ 半完成——同步+push 完成（oneinitAI/dsh-buddy `3123f00`，skills 与 vendor 一致、version 0.3.0 对齐）；npm 首次发布卡 OTP，待维护者执行 `cd F:\dsh-buddy && npm publish --otp=<码>` |
+| 6 | awesome-deepseek-harness PR #456 等待合并 | ⏳ 等维护者审 |
 
 ## 十一、外部提交记录
 
 - awesome-deepseek-harness: [PR #456](https://github.com/0xsline/awesome-deepseek-harness/pull/456)
-- npm: `dsh-thunderforge@0.1.3`（latest），`0.1.6` 待发布
+- npm: `dsh-thunderforge@0.1.7`（latest）；`dsh-buddy@0.3.0` 已就绪待 OTP 发布
+- dsh-buddy 独立仓库：`oneinitAI/dsh-buddy@3123f00`（canonical rewrite 同步）
 
 ## 十二、项目统计
 

@@ -1,30 +1,96 @@
 {
-  "skill": "thunderforge-dev",
-  "methodology": "方法论：agentskills.io《Optimizing skill descriptions》——触发评测 + 训练/验证集划分（60/40）防过拟合。正例覆盖直接指名/隐式描述（不提 dsh 或 plugin）/中英/多步工作流；负例一半无关领域、一半易混淆近邻（Koishi、Claude Code hooks、通用编程、Chrome 扩展）。修改 description 后：train 集指导修改，validation 集只做泛化验证，禁止用 validation 集结果进修改过程。通过率 ≥ train 12/12、validation 8/8 视为达标。",
-  "train_queries": [
-    { "query": "帮我写一个 DSH 插件", "should_trigger": true },
-    { "query": "用 thunderforge 生成一个插件骨架", "should_trigger": true },
-    { "query": "给这个 agent 加一个能读文件的工具", "should_trigger": true },
-    { "query": "我想接一个新的 LLM 提供方，怎么注册适配器", "should_trigger": true },
-    { "query": "怎么在 cordis.yml 里注册插件并传配置", "should_trigger": true },
-    { "query": "dsh插件怎么打包安装", "should_trigger": true },
-    { "query": "写个插件监听 tools/result 事件", "should_trigger": true },
-    { "query": "How do I write a DSH plugin?", "should_trigger": true },
-    { "query": "register an LLM adapter for a new provider in dsh", "should_trigger": true },
-    { "query": "我的插件加载后为什么不生效", "should_trigger": true },
-    { "query": "写个 python 脚本处理 csv", "should_trigger": false },
-    { "query": "今天天气怎么样", "should_trigger": false },
-    { "query": "优化这段 sql 查询", "should_trigger": false },
-    { "query": "帮我翻译这段英文合同", "should_trigger": false }
-  ],
-  "validation_queries": [
-    { "query": "用 thunderforge_scaffold 生成一个 tool 模板插件", "should_trigger": true },
-    { "query": "thunderforge-debugger 怎么对齐 capture 的索引流", "should_trigger": true },
-    { "query": "我想在 dsh 里让 agent 多一个本事，怎么弄", "should_trigger": true },
-    { "query": "给我审一下这个 DeepSeek Harness 插件的写法对不对", "should_trigger": true },
-    { "query": "帮我写一个 koishi 插件", "should_trigger": false },
-    { "query": "帮我配置 claude code 的 hooks 配置文件", "should_trigger": false },
-    { "query": "how to write a chrome extension", "should_trigger": false },
-    { "query": "写个函数算斐波那契", "should_trigger": false }
-  ]
+ "skill": "thunderforge-dev",
+ "methodology": "方法论：agentskills.io《Optimizing skill descriptions》——触发评测 + 训练/验证集划分（60/40）防过拟合。正例覆盖直接指名/隐式描述（不提 dsh 或 plugin）/中英/多步工作流；负例一半无关领域、一半易混淆近邻（Koishi、Claude Code hooks、通用编程、Chrome 扩展）。修改 description 后：train 集指导修改，validation 集只做泛化验证，禁止用 validation 集结果进修改过程。通过率 ≥ train 12/12、validation 8/8 视为达标。 Live 验证（2026-08-24，web 真机会话，抽样）：train 6/6（正例 4/4 触发·点名/隐式/英文/事件系统，负例 2/2 干净忽略），validation 4/4（正例 2/2 触发；近邻负例 2/2 未加载技能，但模型以 ask_user_question 澄清一次——边界摇摆而非误触发，记录观察、不改 description）。",
+ "train_queries": [
+  {
+   "query": "帮我写一个 DSH 插件",
+   "should_trigger": true
+  },
+  {
+   "query": "用 thunderforge 生成一个插件骨架",
+   "should_trigger": true
+  },
+  {
+   "query": "给这个 agent 加一个能读文件的工具",
+   "should_trigger": true
+  },
+  {
+   "query": "我想接一个新的 LLM 提供方，怎么注册适配器",
+   "should_trigger": true
+  },
+  {
+   "query": "怎么在 cordis.yml 里注册插件并传配置",
+   "should_trigger": true
+  },
+  {
+   "query": "dsh插件怎么打包安装",
+   "should_trigger": true
+  },
+  {
+   "query": "写个插件监听 tools/result 事件",
+   "should_trigger": true
+  },
+  {
+   "query": "How do I write a DSH plugin?",
+   "should_trigger": true
+  },
+  {
+   "query": "register an LLM adapter for a new provider in dsh",
+   "should_trigger": true
+  },
+  {
+   "query": "我的插件加载后为什么不生效",
+   "should_trigger": true
+  },
+  {
+   "query": "写个 python 脚本处理 csv",
+   "should_trigger": false
+  },
+  {
+   "query": "今天天气怎么样",
+   "should_trigger": false
+  },
+  {
+   "query": "优化这段 sql 查询",
+   "should_trigger": false
+  },
+  {
+   "query": "帮我翻译这段英文合同",
+   "should_trigger": false
+  }
+ ],
+ "validation_queries": [
+  {
+   "query": "用 thunderforge_scaffold 生成一个 tool 模板插件",
+   "should_trigger": true
+  },
+  {
+   "query": "thunderforge-debugger 怎么对齐 capture 的索引流",
+   "should_trigger": true
+  },
+  {
+   "query": "我想在 dsh 里让 agent 多一个本事，怎么弄",
+   "should_trigger": true
+  },
+  {
+   "query": "给我审一下这个 DeepSeek Harness 插件的写法对不对",
+   "should_trigger": true
+  },
+  {
+   "query": "帮我写一个 koishi 插件",
+   "should_trigger": false
+  },
+  {
+   "query": "帮我配置 claude code 的 hooks 配置文件",
+   "should_trigger": false
+  },
+  {
+   "query": "how to write a chrome extension",
+   "should_trigger": false
+  },
+  {
+   "query": "写个函数算斐波那契",
+   "should_trigger": false
+  }
+ ]
 }
