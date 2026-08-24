@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { apply } from '../src/capture/index.js'
 import { CaptureStore, createAggregator, initConfig, sanitize } from '../src/capture/core.js'
 
@@ -145,12 +145,21 @@ test('CaptureStore 按 maxFiles 轮转删除最旧捕获', async () => {
 //    与单步 stream 协议。2026-08-24 真机复现：只包装 stream() 时，LlmRuntime 主路径
 //    走 prepareCall()，捕获静默落空（web 会话 4k+ chunk 零落盘）。——
 
-function fakeLlmContext(dir, config = {}) {
+function fakeLlmContext(dir, config = {}, hooks = {}) {
   const registered = []
   const llm = { registerAdapter: (providers, adapter) => registered.push({ providers, adapter }) }
-  const ctx = { llm, on: () => {}, logger: () => ({ info() {}, warn() {} }) }
+  const warns = []
+  const logger = () => ({
+    info() {},
+    warn: (...args) => {
+      const line = args.map((a) => String(a?.message ?? a)).join(' ')
+      warns.push(line)
+      hooks.onWarn?.(line)
+    },
+  })
+  const ctx = { llm, on: () => {}, logger }
   apply(ctx, { dir, ...config })
-  return { registered, llm }
+  return { registered, llm, warns }
 }
 
 function twoStepAdapter({ fail = false } = {}) {
@@ -270,6 +279,75 @@ test('provider 过滤不命中时：适配器原样透传、不包装', async ()
     const adapter = twoStepAdapter()
     llm.registerAdapter(['pi'], adapter)
     assert.equal(registered[0].adapter, adapter, '不捕获的 provider 应原样透传')
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('initConfig 默认目录落在 DSH 数据根（无 DSH_HOME → ~/.dsh；有 → $DSH_HOME）', () => {
+  const prev = process.env.DSH_HOME
+  try {
+    delete process.env.DSH_HOME
+    const c1 = initConfig({})
+    assert.ok(c1.dir.endsWith(join('.dsh', 'thunderforge-capture')), `无 DSH_HOME 时应落 ~/.dsh/thunderforge-capture，实际 ${c1.dir}`)
+    process.env.DSH_HOME = join('X:', 'fake-home')
+    const c2 = initConfig({})
+    assert.equal(c2.dir, join(resolve(process.env.DSH_HOME), 'thunderforge-capture'))
+    assert.ok(!c2.dir.includes(process.cwd()), '默认目录不应再依赖进程 cwd（v0.1.7 及以前是 ./.thunderforge-capture）')
+  } finally {
+    if (prev === undefined) delete process.env.DSH_HOME
+    else process.env.DSH_HOME = prev
+  }
+})
+
+test('wrapAdapter 双协议覆盖：两步协议适配器必须同时获得 prepareCall 与 stream 包装', async () => {
+  // 防回归锚点：v0.1.6 只包 stream() 导致 prepareCall 主路径静默零捕获（真机事故）。
+  // 若未来重构丢掉任一协议的包装，此测试先红，而不是等真机丢数据。
+  // 包装按适配器能力覆盖：有 prepareCall 包 prepareCall，有 stream 包 stream。
+  const dir = await mkdtemp(join(tmpdir(), 'tf-capture-'))
+  try {
+    const { registered, llm } = fakeLlmContext(dir)
+    llm.registerAdapter(['two-step'], twoStepAdapter())
+    llm.registerAdapter(['single-step'], {
+      providerInfo: (p) => ({ id: p, name: p }),
+      async *stream() {
+        yield { type: 'finish', reason: { kind: 'stop' } }
+      },
+    })
+    const [twoStep, singleStep] = registered.map((r) => r.adapter)
+    assert.equal(typeof twoStep.prepareCall, 'function', '两步协议必须有 prepareCall 包装（LlmRuntime 主路径）')
+    assert.equal(typeof singleStep.stream, 'function', 'stream 兜底包装必须保留（旧适配器/直接调用路径）')
+    assert.notEqual(singleStep.stream, undefined, '只实现了 stream 的适配器不能丢包装')
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('staleWarnMs：包装后超时仍零捕获时输出协议失配警告', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'tf-capture-'))
+  try {
+    const { registered, llm, warns } = fakeLlmContext(dir, { staleWarnMs: 30 })
+    llm.registerAdapter(['test'], twoStepAdapter())
+    assert.equal(registered.length, 1)
+    await settle(80)
+    assert.ok(
+      warns.some((w) => w.includes('零捕获') && w.includes('协议可能已变更')),
+      `应输出协议失配警告，实际：${JSON.stringify(warns)}`,
+    )
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('staleWarnMs：已有成功捕获时不误报', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'tf-capture-'))
+  try {
+    const { registered, llm, warns } = fakeLlmContext(dir, { staleWarnMs: 30 })
+    llm.registerAdapter(['test'], twoStepAdapter())
+    const call = await registered[0].adapter.prepareCall('test', 'm1')
+    for await (const chunk of call.stream({ model: 'm1' })) void chunk
+    await settle(80)
+    assert.ok(!warns.some((w) => w.includes('零捕获')), `有成功捕获后不应告警，实际：${JSON.stringify(warns)}`)
   } finally {
     await rm(dir, { recursive: true, force: true })
   }

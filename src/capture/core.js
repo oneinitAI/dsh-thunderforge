@@ -3,13 +3,15 @@
 // 本文件为清洁室实现：仅依据 DSH 公开的 LLM 适配器协议（GenerateOptions / StreamChunk）
 // 与插件规范编写，未参考任何无许可证上游组件的代码。
 import { appendFile, mkdir, rm, writeFile } from 'node:fs/promises'
+import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 export const VERSION = '0.1.0'
 
 export const DEFAULTS = Object.freeze({
   enabled: true,
-  // 空串 → DSH_HOME/thunderforge-capture（无 DSH_HOME 时 ./.thunderforge-capture）
+  // 空串 → $DSH_HOME/thunderforge-capture（无 DSH_HOME 时 ~/.dsh/thunderforge-capture，
+  // 与 sessions/profiles 同级，符合 DSH 数据心智；v0.1.7 及以前是 ./.thunderforge-capture）
   dir: '',
   // 空数组 → 捕获全部 provider
   providers: [],
@@ -25,6 +27,10 @@ export const DEFAULTS = Object.freeze({
   maxTotalBytes: 0,
   // 每多少次写入执行一次清理
   pruneEvery: 50,
+  // 协议失效守卫：已包装适配器但超过该时长仍零捕获时输出警告（毫秒；0 = 关闭）。
+  // 静默失效是 capture 最大的敌人——dsh LLM 适配器协议变更（如两步 prepareCall 化）
+  // 曾让 v0.1.6 及以前完全丢数据且无任何报错。
+  staleWarnMs: 300000,
 })
 
 const REDACT_RE = /(?:api[-_]?key|secret|token|authorization|password|credential)/i
@@ -35,9 +41,9 @@ export function initConfig(userConfig = {}) {
     if (userConfig?.[key] !== undefined) config[key] = userConfig[key]
   }
   if (!config.dir) {
-    config.dir = process.env.DSH_HOME
-      ? join(process.env.DSH_HOME, 'thunderforge-capture')
-      : join(process.cwd(), '.thunderforge-capture')
+    // 与 dsh 的 resolveDshHome 口径一致（内联实现，避免跨模块耦合）
+    const home = process.env.DSH_HOME ? resolve(process.env.DSH_HOME) : join(homedir(), '.dsh')
+    config.dir = join(home, 'thunderforge-capture')
   } else {
     config.dir = resolve(config.dir)
   }
@@ -138,6 +144,10 @@ export class CaptureStore {
     this.dirReady = null
     this.written = []
     this.writesSincePrune = 0
+    // 协议失效守卫计数：wrapped = 走过包装的适配器注册数；committed = 成功落盘的捕获数。
+    // wrapped > 0 且 committed === 0 持续到 staleWarnMs 即视为协议可能失配（见 index.js 的守卫定时器）。
+    this.wrapped = 0
+    this.committed = 0
   }
 
   shouldCapture(providers) {
@@ -203,6 +213,7 @@ export class CaptureStore {
       'utf8',
     )
     this.written.push({ seq, file, bytes: Buffer.byteLength(body) })
+    this.committed += 1
     this.writesSincePrune += 1
     if (this.writesSincePrune >= this.config.pruneEvery) {
       this.writesSincePrune = 0

@@ -10,11 +10,12 @@
 //     而不是直接调 adapter.stream()。因此包装必须同时覆盖两种形态——
 //     只包 stream() 会让 prepareCall 协议下的调用（官方 deepseek/pi-ai 适配器）
 //     完全绕过捕获（2026-08-24 真机复现：web 会话 4k+ chunk 零落盘）。
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { CaptureStore, initConfig } from './core.js'
 
 export const name = 'thunderforge-capture'
 export const inject = ['llm']
-
 // 配置键与默认值见 core.js DEFAULTS；树外插件零 harness 导入（生态惯例），
 // 不再导出 Schemastery Config，避免把 @deepseek-ai 包拖进 profile 树造成 Symbol 双实例
 
@@ -74,6 +75,19 @@ export function apply(ctx, userConfig = {}) {
   const logger = typeof ctx?.logger === 'function' ? ctx.logger(name) : console
   const store = new CaptureStore(config, (err) => logger.warn?.('capture write failed:', err?.message ?? err))
 
+  // R2 迁移提示：v0.1.7 及以前默认落 cwd/.thunderforge-capture；检测到旧目录有历史
+  // 数据时提示一次新位置（信息性，不做自动迁移——移动用户数据越权）
+  if (!userConfig?.dir && typeof ctx?.logger === 'function') {
+    try {
+      const legacyDir = join(process.cwd(), '.thunderforge-capture')
+      if (existsSync(legacyDir)) {
+        logger.info?.(`${name}: 检测到旧版默认目录 ${legacyDir}（历史捕获数据）。现默认输出 ${config.dir}，如需保留请手动迁移或用 config.dir 显式指定`)
+      }
+    } catch {
+      /* 探测失败不影响运行 */
+    }
+  }
+
   const llm = ctx?.llm
   if (!llm || typeof llm.registerAdapter !== 'function') {
     logger.warn?.(`${name}: llm 服务未注入，捕获未启用`)
@@ -86,6 +100,7 @@ export function apply(ctx, userConfig = {}) {
     if (!store.shouldCapture(providers)) {
       return original.apply(this, arguments)
     }
+    store.wrapped += 1
     return original.call(this, providerArg, wrapAdapter(adapter, providers, store))
   }
   llm.registerAdapter = patched
@@ -94,8 +109,25 @@ export function apply(ctx, userConfig = {}) {
   // 已知对策：把 dsh-thunderforge 移到 profile 的 dsh.profile.bundles 数组最前。
   logger.info?.(`${name}: 已挂载注册包装（对后续注册生效）`)
 
+  // R1 协议失效守卫：包装了适配器却长时间零捕获 → 协议可能失配（如 dsh 再改两步协议）。
+  // 保守判定：wrapped > 0 且 committed === 0 且超过 staleWarnMs；一次性检查，unref 不阻退出。
+  let staleTimer
+  if (config.staleWarnMs > 0) {
+    staleTimer = setTimeout(() => {
+      if (store.wrapped > 0 && store.committed === 0) {
+        logger.warn?.(
+          `${name}: 已包装 ${store.wrapped} 个适配器，但 ${Math.round(config.staleWarnMs / 60000)} 分钟内零捕获——`
+          + 'LLM 适配器协议可能已变更（参照 v0.1.6 prepareCall 失配事故）。'
+          + '请核对本插件与当前 dsh 版本的兼容性；若确有模型流量，请提 issue 并附 dsh 版本号',
+        )
+      }
+    }, config.staleWarnMs)
+    staleTimer.unref?.()
+  }
+
   // HMR/卸载时恢复原方法，避免补丁跨 fiber 泄漏
   ctx?.on?.('dispose', () => {
+    clearTimeout(staleTimer)
     if (llm.registerAdapter === patched) llm.registerAdapter = original
   })
 }

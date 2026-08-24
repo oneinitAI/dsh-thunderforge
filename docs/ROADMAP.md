@@ -9,8 +9,8 @@
 
 | 批次 | 项 | 一句话 | 状态 |
 |---|---|---|---|
-| P0 | R1 capture 协议失效告警 + 真机形状 fixture | 静默失效是 capture 最大的敌人，这次差点又漏过去 | 候选 |
-| P0 | R2 capture 默认目录改 `~/.dsh` 下 | 维护者自己都找半天落盘位置，用户更会懵 | 候选 |
+| P0 | R1 capture 协议失效告警 + 真机形状 fixture | 静默失效是 capture 最大的敌人，这次差点又漏过去 | ✅ 完成（v0.1.8） |
+| P0 | R2 capture 默认目录改 `~/.dsh` 下 | 维护者自己都找半天落盘位置，用户更会懵 | ✅ 完成（v0.1.8） |
 | P0 | R3 skill 触发的 preset 盲区警告 | minimal preset 裁掉 skill 工具，用户不知道技能为何"不生效" | 候选 |
 | P0 | R4 工程债三件套 | DEP0190 / debugger 零测试覆盖 / capture index 损坏行 | 候选 |
 | P1 | R5 thunderforge_release 发布门禁 | "发布"环节目前是闭环里最空的一环 | 候选 |

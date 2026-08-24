@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8 (2026-08-24)
+
+- **capture 默认目录改到 DSH 数据根**（行为变更）：无 `dir` 配置时从 `./.thunderforge-capture`（进程 cwd）改为 `$DSH_HOME/thunderforge-capture`（无 DSH_HOME 时 `~/.dsh/thunderforge-capture`），与 sessions/profiles 同级、符合用户心智——真机排查时维护者都找错了位置。检测到旧目录有历史数据时输出一次性迁移提示；debugger 默认 capture_dir 自动跟随。
+- **capture 协议失效守卫（R1）**：新增 `staleWarnMs` 配置（默认 300000，0 关闭）——已包装适配器但超过该时长仍零捕获时输出显式警告「LLM 适配器协议可能已变更」。静默失效是 capture 最大敌人（v0.1.6 prepareCall 失配事故零报错），此后协议再变至少会叫。
+- **双协议覆盖防回归测试**：断言两步协议适配器必获 prepareCall 包装、单步 stream 适配器必获 stream 包装；真机形状 fixture（twoStepAdapter）固化 dsh-llm-pi-ai 接口面。`node --test` 40/40。
+
 ## 0.1.7 (2026-08-24)
 
 - **修复 capture 在 dsh 0.1.1-rc.2 上完全失效（真 bug，web 会话复现）**：dsh 的 `LlmRuntime` 主调用路径是两步协议 `adapter.prepareCall(provider, model, signal)` → `adapterCall.stream(options)`，而 capture 的 `wrapAdapter` 只包装了单步 `adapter.stream()`——官方 `dsh-llm-deepseek` / `dsh-llm-pi-ai` 适配器都实现 `prepareCall`，注册进 LlmRuntime 后走的是 `prepareCall().stream()`，捕获流永远不被调用。后果：web 会话 4k+ chunk、13 次工具调用，`thunderforge-capture` 目录零落盘（插件激活、`registerAdapter` 包装均正常，仅协议钩错方法，mock 老协议测不出来）。修复：`wrapAdapter` 同时覆盖两步协议——`Object.create` 包一层 `prepareCall` 返回的 adapterCall 并重写其 `stream`（不改原对象，保留 `model` 等）；保留单步 `stream` 兼容。
