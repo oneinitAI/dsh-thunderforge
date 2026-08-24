@@ -1,0 +1,191 @@
+# ThunderForge 开发文档
+
+> 给开发者（维护者/贡献者）的第一天读物。讲清**为什么这么设计**、**怎么改、怎么验、怎么发**、**哪些红线不能碰**。
+> 用户向说明见 [`README.md`](../README.md)；分阶段计划见 [`PRD.md`](./PRD.md)；发布清单见 [`RELEASE.md`](./RELEASE.md)；网络坑手册见 [`NETWORK-NOTES.md`](./NETWORK-NOTES.md)。
+
+## 1. 项目是什么
+
+ThunderForge（`dsh-thunderforge`）是 DeepSeek Harness（DSH）的**一站式插件开发套件**，形态是**单一 bundle**：`dsh plugin add` 一次，获得「创建 → 开发 → 调试 → 环境验证」的完整闭环。包含五个插件 + 四层知识库：
+
+| 模块 | 路径 | 职责 |
+|---|---|---|
+| thunderforge-capture | `src/capture/` | LLM 载荷捕获（清洁室实现） |
+| thunderforge-skills | `src/skills/` + `skills/` | 四层知识库注册与内容 |
+| thunderforge-scaffold | `src/scaffold/` | 对话式脚手架生成器 |
+| thunderforge-debugger | `src/debugger/` | 双数据源轨迹瀑布 |
+| thunderforge-profile | `src/profile/` | profile 管理 + dev preset |
+
+## 2. 关键架构决策（改代码前必读）
+
+### 2.1 单一 bundle，插件按子路径引用
+
+`package.json` 的 `dsh.bundle.patch` 指向 `cordis.patch.yml`，patch 里按包名子路径引用插件行：
+
+```yaml
+- insert:
+    - id: thunderforge-capture
+      name: dsh-thunderforge/capture
+```
+
+新增插件 = 新增 `src/<模块>/index.js` + 在 `cordis.patch.yml` 加一行 + `package.json` exports 加子路径。
+
+### 2.2 零 harness 运行时依赖（铁律）
+
+**规则**：禁止 `import ... from '@deepseek-ai/...'`（`src/` 下受控文件零导入）。这是踩过真崩溃换来的：
+
+- 曾把 `@deepseek-ai/dsh-tools` 声明为普通依赖 → pnpm 往 profile 装了第二份副本
+- `TOOL_RUNTIME_SCHEDULER` 是 `Symbol()`（内容寻址，每次模块加载新建）→ 两份副本符号不等 → `ctx.tools[scheduler]` 为 undefined → 多工具并发调用 turn 崩溃（`Cannot read properties of undefined (reading 'prepare')`）
+- 修复：所有 util 自己实现；`dsh-tools`/`schemastery` 降为 optional peerDependencies（纯元数据）
+
+**推论**：工具注册不能用 `defineTool`（那是 `dsh-tools` 的导出），必须用**原始 JSON Schema 注册**：
+
+```js
+ctx.tools.register({
+  name: 'my_tool',
+  description: '...',
+  parameters: { type: 'object', properties: {...}, required: [...], additionalProperties: false },
+  output: { schema: { type: 'object', additionalProperties: true }, render: (_a, v) => [{ type: 'text', text: JSON.stringify(v) }] },
+  async execute(args) { ... },  // 需自行校验输入
+})
+```
+
+**真机契约**（`ctx.tools.register` 实际校验，见 `test/tool-contract.test.mjs`）：
+
+- **`output` 必须声明** `{ schema, render }`（缺了直接 TypeError）
+- `schema.type` 只能取 `object/array/string/number/integer/boolean/null`——**`'json'` 是 defineTool 专用糖，raw 不认**
+- 显式对象节点必须声明 `additionalProperties: boolean`
+- schema 里**不要出现 DSL 风格的 `required: true` 属性键**（未知关键字会被拒，必填用顶层 `required: [...]` 数组）
+- `parameters` 建议是完整 object schema（执行期校验安全）
+
+### 2.3 层序策略（capture 生效的关键）
+
+`llm-deepseek` 适配器行在 `@deepseek-ai/dsh-base` **层内部**。capture 靠包装 `llm.registerAdapter` 工作，若 thunderforge 排在 base **之后**，适配器早已注册、包装落空（llm 服务无公开枚举手段，迟到无法补救）。
+
+**规则**：`dsh-thunderforge` 必须位于 profile `dsh.profile.bundles` **数组最前**（先于 `@deepseek-ai/dsh-base`）。响应式注入会让 capture 恰好在 llm 服务出现后、适配器行之前挂上补丁。
+
+- `thunderforge_profile create-dev-preset` 生成时已自动排好
+- 装进既有 profile 需手动把 bundle 挪到最前（README 有提示）
+
+### 2.4 清洁室与 vendor 原则
+
+- `src/capture/` 是**清洁室实现**：只依据官方 LLM 适配器协议编写，未使用无许可证上游 `dsh-payload-capture` 的任何代码（该组件被明确排除，见 `LICENSES/README.md`）
+- vendor 引入（`src/debugger/session-log.js` 来自 dsh-replay、`src/profile/dshp/` 来自 dshp、`skills/arch-standard`、`skills/pitfalls`、`skills/dsh-buddy`）：**未修改实现，仅文件头前置来源声明**；许可证原文进 `LICENSES/`
+- **红线**：不引入/不参照无许可证（All Rights Reserved）的代码
+
+## 3. 本地开发环境
+
+```bash
+node >= 22.19          # node -v 验证
+# dsh CLI（验证 profile 层加载用）：
+#   推荐全局安装：npm i -g @deepseek-ai/dsh@0.1.1-rc.2
+#   或复用现有：$USERPROFILE/.dsh/profiles/node_modules/@deepseek-ai/dsh/lib/bin.js
+```
+
+项目自身**零安装依赖**（`node --test` 即可跑测试，无需 `npm i`——这是零依赖设计的红利）。
+
+## 4. 代码地图
+
+```
+src/
+├── capture/
+│   ├── core.js        # 清洗/聚合/存储/轮转纯逻辑（零依赖，可单测）
+│   └── index.js       # 插件入口：包装 llm.registerAdapter（透明代理 + dispose 还原）
+├── skills/
+│   └── index.js       # 注册四层技能（ctx.skills.register + 目录 resourceBase）
+├── scaffold/
+│   ├── templates.js   # 三类骨架模板（tool/events/webui）+ 埋点清单
+│   └── index.js       # thunderforge_scaffold 工具：生成 → 落盘 → 冒烟
+├── debugger/
+│   ├── session-log.js # vendor: dsh-replay 引擎（zstd 容器 + chunk-row 解码）
+│   ├── align.js       # 双数据源对齐（session 事件 × capture index.jsonl）
+│   └── index.js       # thunderforge_debugger 工具（sessions/summary/waterfall）
+└── profile/
+    ├── dshp/          # vendor: dshp（profile 读写 + 可移植序列化）
+    └── index.js       # thunderforge_profile 工具（list/export/create-dev-preset/verify）
+
+skills/                  # 四层知识库内容
+├── thunderforge-dev/    # 入口索引（自研）
+├── arch-standard/       # vendor: dsh-plugin-dev-skills（MIT）
+├── pitfalls/            # vendor: dsh-plugin-guide（Apache-2.0）
+└── dsh-buddy/           # vendor: oneinitAI/dsh-buddy（MIT，同作者仓库）
+
+scripts/
+├── github-push.mjs      # 抗网络推送（git 优先 + API 降级 + 血统校验）
+├── release.mjs          # 一键发布（bump→测试→npm→推送→registry 验证）
+└── smoke-capture.mjs    # capture 端到端冒烟（假适配器全链路）
+
+test/                    # node --test（node:test，无框架）
+├── capture.test.mjs     # 清洗/聚合/存储/轮转
+├── skills.test.mjs      # 技能注册/开关/词典与画像条款
+├── scaffold.test.mjs    # 三模板生成即冒烟 + 错误值
+├── debugger.test.mjs    # 双源对齐 + 真实会话验证
+├── profile.test.mjs     # preset 生成/防覆盖/patch 数组契约
+└── tool-contract.test.mjs  # 真机工具注册契约（必读 §2.2）
+
+docs/                    # PRD / RELEASE / NETWORK-NOTES / DEVELOPMENT / notes/
+```
+
+## 5. 开发流程
+
+```bash
+# 1. 改代码。遵循 §2 的决策（零依赖、原始 JSON Schema、层序、合规）
+# 2. 跑测试
+node --test                     # 全量（当前 31 项）
+node --test test/<模块>.test.mjs # 单模块
+
+# 3. 真机验证（mock 测不出的错必须真机把关）
+dsh --profile <某profile> --dump-config   # 层加载 + 无 boot 报错
+#   新增/改动工具时先过一遍 test/tool-contract.test.mjs 的规则
+
+# 4. 提交（遵循仓库内的 Conventional Commits 风格，中文 message 亦可）
+git add -A && git commit -m "feat(xxx): 描述"
+
+# 5. 推送
+git push                          # 网络正常时
+node scripts/github-push.mjs --trust-remote   # 443 被掐 / 历史形状差异时
+```
+
+## 6. 测试哲学
+
+- **mock 单测负责逻辑**：清洗规则、聚合、轮转、错误路径、模板内容
+- **契约测试负责真机规则**：`tool-contract.test.mjs` 把 `ctx.tools.register` 的真实校验固化成断言——mock 测不出"register 拒绝什么"，契约测能
+- **冒烟负责全链路**：`smoke-capture.mjs` 用假适配器驱动完整 注册→流→落盘→dispose 链路
+- **真机 boot 是最后一道门**：`--dump-config` 无报错 + 层加载齐全。历史上最贵的两个坑（Symbol 双实例、raw 注册契约）都是真机先抓出来的——**不信 mock，只信真机**
+
+## 7. 发布流程
+
+```bash
+node scripts/release.mjs patch          # 一键：测试→bump→npm→推送→registry 验证
+node scripts/release.mjs patch --dry-run # 只看计划
+```
+
+注意：
+
+- npm 有 2FA：`npm publish` 需 OTP，脚本自动检测登录态，未登录/OTP 时明确提示剩余手动步骤
+- Windows 下脚本内部用 `npm.cmd` 经 shell 解析（曾踩 spawn ENOENT）
+- 发布后用户侧：`dsh plugin --profile <名> update dsh-thunderforge` + 重启对应应用
+- CHANGELOG.md 每个版本都要记（含"git only 未单独发布"的版本，注明并入下一版）
+
+## 8. 网络与推送
+
+详见 [`NETWORK-NOTES.md`](./NETWORK-NOTES.md)。要点：
+
+- `github.com:443` 被掐但 `api.github.com` 通 → `node scripts/github-push.mjs` 自动降级 API 通道（单提交、blob sha 复用、删除同步）
+- API 推送后本地/远端历史形状可能不同（内容一致）→ 网络恢复后 `git fetch origin && git reset origin/main`
+- `--trust-remote`：远端提交不在本地历史时做血统校验（tree sha 是否在 reflog 中）；`--allow-divergent`：已人工验证时显式跳过
+- Node fetch 遇本地代理 TLS 拦截 → 自动带 `--use-system-ca` 重启自身
+
+## 9. 贡献指南（简版）
+
+1. **先读本文件**，尤其 §2 决策与红线
+2. 改动尽量小、可回滚；每个版本补 CHANGELOG
+3. 新 vendor 任何上游 → 协议确认（宽松协议才可引入）+ `LICENSES/` 台账 + 文件头来源声明
+4. 新工具 → 过真机契约规则 + 补 `tool-contract.test.mjs` 覆盖
+5. 提交信息说明「为什么」（决策与教训），不只是「改了什么」
+6. 提 PR 前：`node --test` 全绿 + 真机 dump-config 无报错
+
+## 10. 已知边界与待办
+
+- **live 端到端**（真模型对话 → skill 触发 → capture 落盘 → waterfall 对齐）依赖带模型 API 的会话；本机 headless 曾挂起，建议在 web 会话中验证
+- **live skill 触发评测**：`skills/*/evals/trigger-queries.json` 已备，需真实会话按正负例跑
+- 骨架 upgrade 器、llm-adapter 模板、capture 报告化、MCP 双端暴露——见开发路线候选（未开工）
