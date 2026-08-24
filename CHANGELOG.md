@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **修复 mcp.mjs 未随 npm 包分发**：`files` 白名单漏了 `mcp.mjs`——0.1.10 的 tarball 里没有 MCP 入口，npm 安装的用户无法使用双端暴露（link 安装的 profile 不受影响）。下个版本生效。
+- **版本序列备注**：0.1.9 从未发布到 npm（本地 bump 后直接跳发 0.1.10，CHANGELOG 的 0.1.9 条目内容实际随 0.1.10 分发）——git only 先例记档。
+
 ## 0.1.10 (2026-08-24)
 
 - **骨架 upgrade 器（R7）**：新增 `thunderforge_upgrade` 工具——对比存量骨架与最新模板（文件清单 / thunderforge.debug.json 埋点声明 / 工具契约自检），输出迁移建议清单，**只建议不代改**；scaffold 引擎现注册双工具。

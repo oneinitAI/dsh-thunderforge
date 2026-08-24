@@ -27,6 +27,7 @@
   "files": [
     "src",
     "skills",
+    "mcp.mjs",
     "cordis.patch.yml",
     "LICENSE",
     "LICENSES",
