@@ -6,9 +6,13 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkRawToolContract } from '../contract/index.js'
 import { runSmoke } from '../scaffold/index.js'
+import { releaseConfig } from '../engine-configs.js'
 
 export const name = 'thunderforge-release'
 export const inject = ['tools']
+
+// Web 设置面板配置声明
+export const Config = releaseConfig()
 
 const packageRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))))
 

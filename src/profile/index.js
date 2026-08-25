@@ -7,9 +7,13 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { exists, listProfiles, profileDir, profileSize, readProfile, writeProfile } from './dshp/profile.js'
 import { serialize } from './dshp/portable.js'
+import { profileConfig } from '../engine-configs.js'
 
 export const name = 'thunderforge-profile'
 export const inject = ['tools']
+
+// Web 设置面板配置声明
+export const Config = profileConfig()
 
 const packageRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))))
 const PRESET_PREFIX = 'tf-dev-'

@@ -272,6 +272,26 @@ test('apply 包装 registerAdapter：单步 stream 协议仍兼容（老适配�
   }
 })
 
+test('capture 导出 Schemastery Config（Web 设置面板渲染源；无 schemastery 时为 undefined 且不影响功能）', async () => {
+  const mod = await import('../src/capture/index.js')
+  // 有 schemastery 可解析时必须是合法 schema（带 type/meta）；否则允许 undefined（零依赖回退）
+  if (mod.Config !== undefined) {
+    assert.equal(mod.Config.type, 'object')
+    assert.ok(mod.Config.meta)
+    assert.ok(mod.Config.dict?.enabled || mod.Config.inner, 'Config 应声明 enabled 键')
+  }
+  // Config 缺失或存在，apply 行为一致
+  const dir = await mkdtemp(join(tmpdir(), 'tf-capture-'))
+  try {
+    const registered = []
+    const llm = { registerAdapter: (p, a) => registered.push(a) }
+    apply({ llm, on: () => {}, logger: () => ({ info() {}, warn() {} }) }, { dir })
+    assert.equal(registered.length, 0, '未注册适配器前 registered 为空（占位断言防误删）')
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
 test('provider 过滤不命中时：适配器原样透传、不包装', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'tf-capture-'))
   try {

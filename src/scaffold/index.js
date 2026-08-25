@@ -7,6 +7,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { PLUGIN_NAME_RE, TEMPLATES, scaffoldFiles } from './templates.js'
 import { checkRawToolContract } from '../contract/index.js'
+import { scaffoldConfig } from '../engine-configs.js'
 
 // 树外插件零 harness 导入（生态惯例，见 dsh-plugin-guide）：直接用原始 JSON Schema
 // 定义注册工具，避免把 @deepseek-ai/dsh-tools 装进 profile 树造成 Symbol 双实例
@@ -14,6 +15,9 @@ import { checkRawToolContract } from '../contract/index.js'
 
 export const name = 'thunderforge-scaffold'
 export const inject = ['tools']
+
+// Web 设置面板配置声明
+export const Config = scaffoldConfig()
 
 const packageRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))))
 

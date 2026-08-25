@@ -6,9 +6,13 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { skillsConfig } from '../engine-configs.js'
 
 export const name = 'thunderforge-skills'
 export const inject = ['skills']
+
+// Web 设置面板配置声明（宿主无 schemastery 时为 undefined）
+export const Config = skillsConfig()
 
 // 层开关（entryLayer/archLayer/pitfallsLayer/buddyLayer，默认全开）经 config 传入；
 // 树外插件零 harness 导入，不导出 Schemastery Config（避免 Symbol 双实例，见 CHANGELOG 0.1.5）

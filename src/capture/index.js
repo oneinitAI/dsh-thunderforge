@@ -12,10 +12,15 @@
 //     完全绕过捕获（2026-08-24 真机复现：web 会话 4k+ chunk 零落盘）。
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { CaptureStore, initConfig } from './core.js'
+import { CaptureStore, initConfig, DEFAULTS } from './core.js'
+import { captureConfig } from '../engine-configs.js'
 
 export const name = 'thunderforge-capture'
 export const inject = ['llm']
+
+// Web 设置面板的配置声明（Schemastery schema；宿主无 schemastery 时为 undefined，
+// 行级 cordis.patch.yml 覆盖不受影响）。键与 core.js DEFAULTS 一一对应。
+export const Config = captureConfig(DEFAULTS)
 // 配置键与默认值见 core.js DEFAULTS；树外插件零 harness 导入（生态惯例），
 // 不再导出 Schemastery Config，避免把 @deepseek-ai 包拖进 profile 树造成 Symbol 双实例
 

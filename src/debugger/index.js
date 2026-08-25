@@ -5,11 +5,15 @@ import { readFile, readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { dshHome } from '../profile/dshp/profile.js'
 import { initConfig } from '../capture/core.js'
+import { debuggerConfig } from '../engine-configs.js'
 import { buildTimeline, captureRows, loadCaptureIndex, renderTimeline, summarize } from './align.js'
 import { decodeSession, reconstruct } from './session-log.js'
 
 export const name = 'thunderforge-debugger'
 export const inject = ['tools']
+
+// Web 设置面板配置声明
+export const Config = debuggerConfig()
 
 const SESSION_FILE = 'session.jsonl.zstd'
 
