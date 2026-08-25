@@ -19,7 +19,11 @@
 | P2 | R8 llm-adapter 模板 | evals 里出现过的真实查询场景，prepareCall 知识可直接沉淀 | ✅ 完成（v0.1.10） |
 | P2 | R9 MCP 双端暴露 | 非 dsh 宿主也能用 scaffold/debugger | ✅ 完成（v0.1.10） |
 | P2 | R10 debugger live watch | 调试长任务不必等会话结束 | ✅ 完成（v0.1.10） |
-| P2 | R11 dsh-buddy 渐进式披露 | 主文件聚焦，案例库按需加载 | ✅ 完成（v0.1.10） |
+| P2 | R11 dsh-buddy 渐进式披露 | 主文件聚焦，案例库按需加载 | ✅ 完成（v0.1.10/v0.4.x） |
+| 增补 | checklist 技能（工具+技能双形态闭环） | release 门禁技能化，触发式引导 | ✅ 完成（v0.2.0） |
+| 增补 | debugger browse / diff / token 成本 | capture 数据的呈现与对比层 | ✅ 完成（v0.2.0） |
+| 增补 | 自定义模板目录发现 | 社区/私有骨架可插拔（目录约定，拒 git 直拉） | ✅ 完成（v0.2.0） |
+| 增补 | buddy 画像 opt-in 持久化 | 沉默≠同意的显式持久化条款 | ✅ 完成（buddy v0.4.2） |
 
 ---
 

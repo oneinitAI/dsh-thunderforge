@@ -17,13 +17,13 @@ function mockCtx() {
   }
 }
 
-test('注册四层知识库技能（入口/架构标准/坑点手册/人话模式）', async () => {
+test('注册五层知识库技能（入口/架构标准/坑点手册/人话模式/发布清单）', async () => {
   const { ctx, registered } = mockCtx()
   apply(ctx)
   assert.equal(pluginName, 'thunderforge-skills')
   assert.deepEqual(
     registered.map((s) => s.name).sort(),
-    ['dsh-buddy', 'dsh-plugin-dev', 'dsh-plugin-guide', 'thunderforge-dev'],
+    ['dsh-buddy', 'dsh-plugin-checklist', 'dsh-plugin-dev', 'dsh-plugin-guide', 'thunderforge-dev'],
   )
   for (const skill of registered) {
     assert.ok(skill.description?.length > 20, `${skill.name} 缺少有效 description`)
@@ -36,7 +36,7 @@ test('注册四层知识库技能（入口/架构标准/坑点手册/人话模�
 
 test('config 可关闭单个知识层', () => {
   const { ctx, registered } = mockCtx()
-  apply(ctx, { archLayer: false, pitfallsLayer: false, buddyLayer: false })
+  apply(ctx, { archLayer: false, pitfallsLayer: false, buddyLayer: false, checklistLayer: false })
   assert.deepEqual(registered.map((s) => s.name), ['thunderforge-dev'])
 })
 
@@ -95,7 +95,7 @@ test('入口技能正文索引到全部工具与知识层', () => {
 test('技能遵循正统规范（imperative description + 评测集 train/validation）', async () => {
   const { readFile } = await import('node:fs/promises')
   const { join } = await import('node:path')
-  for (const dir of ['thunderforge-dev', 'dsh-buddy']) {
+  for (const dir of ['thunderforge-dev', 'dsh-buddy', 'plugin-checklist']) {
     const skill = loadSkillDir(dir)
     assert.ok(skill.description.startsWith('Use when'), `${dir}: description 应以 imperative \"Use when\" 开头`)
     assert.ok(skill.description.includes('Not for'), `${dir}: 应写清 Not for 边界防误触发`)

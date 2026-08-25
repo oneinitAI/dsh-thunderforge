@@ -1,0 +1,80 @@
+{
+ "skill": "dsh-plugin-checklist",
+ "methodology": "方法论：agentskills.io《Optimizing skill descriptions》——触发评测 + 训练/验证集划分（60/40）防过拟合。正例覆盖直接指名（发布/上架/npm）与隐式描述（能不能发/装上就崩）；负例一半是发布前的代码工作（属 thunderforge-dev）、一半是 dsh 之外的通用 npm 场景。修改 description 后：train 集指导修改，validation 集只做泛化验证。",
+ "train_queries": [
+  {
+   "query": "帮我把这个 DSH 插件发布到 npm",
+   "should_trigger": true
+  },
+  {
+   "query": "我的插件写完了，可以上线了吗",
+   "should_trigger": true
+  },
+  {
+   "query": "想把这个插件分享给同事装，发布前要注意什么",
+   "should_trigger": true
+  },
+  {
+   "query": "dsh 插件上架插件市场前要做哪些检查",
+   "should_trigger": true
+  },
+  {
+   "query": "release 前跑一遍发布检查",
+   "should_trigger": true
+  },
+  {
+   "query": "这个插件发出去会不会翻车，帮我把关",
+   "should_trigger": true
+  },
+  {
+   "query": "npm publish 被拒了说版本已存在，怎么办",
+   "should_trigger": true
+  },
+  {
+   "query": "用户说我插件装上就崩，刚发布的",
+   "should_trigger": true
+  },
+  {
+   "query": "帮我 review 这段插件的实现逻辑",
+   "should_trigger": false
+  },
+  {
+   "query": "给我的插件加个配置项",
+   "should_trigger": false
+  },
+  {
+   "query": "发布一个普通的 npm 包（非 dsh 插件）流程是什么",
+   "should_trigger": false
+  },
+  {
+   "query": "怎么在 GitHub 上发一个 Release tag",
+   "should_trigger": false
+  }
+ ],
+ "validation_queries": [
+  {
+   "query": "插件准备 v1.0 上架，走一遍发布清单",
+   "should_trigger": true
+  },
+  {
+   "query": "第一次发 dsh 插件有点慌，帮我确认没问题",
+   "should_trigger": true
+  },
+  {
+   "query": "awesome 列表收录提交被维护者要求先完善再合",
+   "should_trigger": true
+  },
+  {
+   "query": "帮我把这个插件的单元测试补全",
+   "should_trigger": false
+  },
+  {
+   "query": "pnpm publish 和 npm publish 有什么区别",
+   "should_trigger": false
+  },
+  {
+   "query": "帮我写插件的 README 文档",
+   "should_trigger": false
+  }
+ ]
+}

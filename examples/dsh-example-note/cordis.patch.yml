@@ -1,0 +1,6 @@
+# example-note 的配置层：本包贡献的插件行。
+- insert:
+    - id: example-note
+      name: dsh-example-note
+      # 载荷捕获（可选）：宿主 profile 安装 dsh-thunderforge 后，
+      # thunderforge-capture 行先于本行应用即可捕获本插件的模型调用。

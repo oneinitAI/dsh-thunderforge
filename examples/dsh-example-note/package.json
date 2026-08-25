@@ -1,0 +1,22 @@
+{
+  "name": "dsh-example-note",
+  "version": "0.1.0",
+  "description": "DSH plugin skeleton (tool) forged by ThunderForge",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "test",
+    "thunderforge.debug.json"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "UNLICENSED",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

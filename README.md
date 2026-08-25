@@ -13,6 +13,7 @@
 **中文** · [English](./README.en.md)
 
 [![CI](https://github.com/oneinitAI/dsh-thunderforge/actions/workflows/ci.yml/badge.svg)](https://github.com/oneinitAI/dsh-thunderforge/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-59%2F59-brightgreen)](https://github.com/oneinitAI/dsh-thunderforge/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4D6BFE.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A522.19-339933.svg)](./package.json)
 [![dsh](https://img.shields.io/badge/DSH-0.1.1--rc.2-7C3AED.svg)](https://www.npmjs.com/package/@deepseek-ai/dsh)
@@ -82,6 +83,7 @@ AI: (thunderforge_profile) → tf-dev-demo 已就绪
 
 - 每步产物是下一步的输入：骨架的 `thunderforge.debug.json` 埋点声明 capture 索引流与事件前缀，debugger 直接消费
 - 真机验收：dsh `0.1.1-rc.2` CLI `plugin add` + `--dump-config` 五行全部加载 ✅（含一个被真机抓住并修复的 patch 格式 bug）
+- 上手示例：[`examples/`](./examples/) 内含真实由 scaffold 生成的最小插件骨架
 
 ## 📦 状态
 

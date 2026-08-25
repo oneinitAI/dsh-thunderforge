@@ -148,6 +148,83 @@ test('watch 增量快照：since_ts 之后的事件可见，未来窗口为空�
   }
 })
 
+test('browse 表格化列出 capture 记录且支持 ok 过滤', async () => {
+  // RED→GREEN：S-browse。fixture 索引有 ok:true 与 ok:false 各一条。
+  const { root, captureDir } = await fixture()
+  try {
+    const [tool] = mockCtx()
+    const all = await tool.execute({ op: 'browse', capture_dir: captureDir })
+    assert.equal(all.total, 2)
+    assert.equal(all.rows.length, 2)
+    assert.deepEqual(
+      { seq: all.rows[0].seq, provider: all.rows[0].provider, model: all.rows[0].model, ok: all.rows[0].ok },
+      { seq: 1, provider: 'deepseek', model: 'v1', ok: true },
+    )
+    assert.equal(typeof all.rows[0].file, 'string')
+    const onlyOk = await tool.execute({ op: 'browse', capture_dir: captureDir, filter: { ok: true } })
+    assert.equal(onlyOk.total, 1)
+    assert.equal(onlyOk.rows[0].ok, true)
+    const limited = await tool.execute({ op: 'browse', capture_dir: captureDir, limit: 1 })
+    assert.equal(limited.rows.length, 1)
+    assert.equal(limited.total, 2, 'total 不受 limit 影响')
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('diff 对比两个 capture 载荷并输出结构差异', async () => {
+  // RED→GREEN：S-diff。写两个载荷文件：同模型不同 usage/finish。
+  const { root, captureDir } = await fixture()
+  try {
+    await writeFile(join(captureDir, '000001-x.json'), JSON.stringify({
+      capture: { seq: 1, ts: '2026-08-22T10:00:00.000Z', providers: ['deepseek'], model: 'v1', ok: true, durationMs: 100 },
+      request: { messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }] },
+      response: { blocks: [], usage: { inputTokens: 10, outputTokens: 5 }, finish: { kind: 'stop' } },
+    }), 'utf8')
+    await writeFile(join(captureDir, '000002-x.json'), JSON.stringify({
+      capture: { seq: 2, ts: '2026-08-22T10:00:01.000Z', providers: ['deepseek'], model: 'v1', ok: false, durationMs: 250 },
+      request: { messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }, { type: 'text', text: 'more' }] }] },
+      response: { blocks: [], usage: { inputTokens: 20, outputTokens: 9 }, finish: { kind: 'error' } },
+    }), 'utf8')
+    const [tool] = mockCtx()
+    const out = await tool.execute({ op: 'diff', capture_dir: captureDir, a: '000001-x.json', b: '000002-x.json' })
+    assert.equal(out.a, '000001-x.json')
+    assert.equal(out.b, '000002-x.json')
+    assert.ok(out.differences.length >= 3, `至少应报 durationMs/usage/finish 差异：${JSON.stringify(out.differences)}`)
+    assert.ok(out.differences.some((d) => d.path.includes('durationMs')))
+    assert.ok(out.differences.some((d) => d.path.includes('outputTokens')))
+    assert.ok(out.similarities.length >= 1)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('summary 聚合 token 用量；提供 priceTable 时输出估算金额', async () => {
+  // RED→GREEN：S-cost。给两个载荷文件各带 usage，断言聚合与金额公式。
+  const { root, captureDir } = await fixture()
+  try {
+    await writeFile(join(captureDir, '000001-x.json'), JSON.stringify({
+      capture: { seq: 1, ts: 'x', providers: ['deepseek'], model: 'v1', ok: true, durationMs: 1 },
+      request: {},
+      response: { blocks: [], usage: { inputTokens: 1_000_000, outputTokens: 1_000_000 }, finish: {} },
+    }), 'utf8')
+    const [tool] = mockCtx()
+    const bare = await tool.execute({ op: 'summary', capture_dir: captureDir })
+    assert.deepEqual(bare.capture.usage, { inputTokens: 1_000_000, outputTokens: 1_000_000 })
+    assert.equal(bare.capture.estimatedCostUsd, undefined, '无单价表时不编造金额')
+    const priced = await tool.execute({
+      op: 'summary',
+      capture_dir: captureDir,
+      price_usd_per_m: { input: 0.27, output: 1.1 },
+    })
+    // 1M input × $0.27 + 1M output × $1.1 = 0.27 + 1.1
+    assert.ok(Math.abs(priced.capture.estimatedCostUsd - 1.37) < 1e-9, JSON.stringify(priced.capture))
+    assert.equal(priced.capture.scannedFiles, 1)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
 test('sessions 与找不到会话时的错误值', async () => {
   const { root } = await fixture()
   const previous = process.env.DSH_HOME

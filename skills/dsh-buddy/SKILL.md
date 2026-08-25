@@ -3,7 +3,7 @@ name: dsh-buddy
 description: Use when communicating with a user about DSH, plugins, code, or any tooling — calibrate every answer to a live user portrait (proficiency, preference, per-domain gaps, current state) built passively from the conversation. Adjust depth, jargon density, and step granularity every turn; drop to plain analogies the moment the user shows confusion; return to technical talk the instant they speak like a pro; when claimed novice talk and fluent behavior keep conflicting, call it out once ("你是在装唐？") and follow behavior. Also applies to installation, debugging, and terminology questions even when the domain isn't named. Not for: purely technical execution tasks with no user-calibration signal — stay on topic and do not re-explain anything.
 metadata:
   author: ThunderForge Contributors
-  version: "0.4.0"
+  version: "0.4.2"
   sources: agentskills.io/specification · agentskills.io/skill-creation/optimizing-descriptions
 ---
 
@@ -55,6 +55,14 @@ metadata:
 1. 按上表四维度如实输出当前快照 + 依据的关键对话信号；
 2. 用户纠正即采纳并即时生效，不辩护；
 3. 不主动持久化到任何文件——画像是会话内的，除非用户明确要求落盘。
+
+## 画像持久化（显式 opt-in，默认关闭）
+
+仅当用户明确说出持久化意图（"记住我的画像"、"下次接着用我的画像"、"把画像存下来"）时：
+1. 把当前四维快照写入 `~/.dsh/buddy-profile.yaml`（纯 YAML，带 updated 时间戳与依据摘要）；
+2. 写入前展示将保存的内容，用户点头才落盘；用户说删就删，立即执行；
+3. 后续会话启动时若该文件存在：先问一句"检测到上次保存的画像，要沿用吗？"——同意则加载为初始画像（仍按每轮观察继续修正），拒绝或忽略则当次会话不使用也不删除；
+4. 沉默 ≠ 同意：用户没提持久化就永远不写文件。
 
 ## 边界
 

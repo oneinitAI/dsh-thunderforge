@@ -1,9 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-08-24)
 
-- **修复 mcp.mjs 未随 npm 包分发**：`files` 白名单漏了 `mcp.mjs`——0.1.10 的 tarball 里没有 MCP 入口，npm 安装的用户无法使用双端暴露（link 安装的 profile 不受影响）。下个版本生效。
-- **版本序列备注**：0.1.9 从未发布到 npm（本地 bump 后直接跳发 0.1.10，CHANGELOG 的 0.1.9 条目内容实际随 0.1.10 分发）——git only 先例记档。
+- **第五知识层：发布清单技能（dsh-plugin-checklist）**——用户提到"发布/上架/分享插件"时触发，引导 agent 走 `thunderforge_release` 门禁流程并交接手动步骤；含翻车排查表（boot 报错/静默失效/publish 被拒）。evals train 12 / validation 6 按 agentskills.io 双集规范。LAYERS 现为五层。
+- **debugger 三新 op**：`browse`（表格化浏览 capture 记录，支持 ok/provider 过滤与分页）；`diff`（对比两个 capture 载荷的叶子级差异——排查"升级后模型行为变了"）；summary 新增 **token 用量聚合 + 可选成本估算**（`price_usd_per_m` 提供才算钱，不内置会过时的单价表）。
+- **自定义模板发现**：scaffold 的 `template` 参数现接受 `~/.dsh/thunderforge-templates/<name>/` 目录约定（文件集与内置模板同构），社区/私有骨架可插拔——放弃 git URL 直拉方案（供应链风险）。
+- **examples/**：真实由 scaffold 生成的示例骨架（tool 模板），README 徽章补 Tests；README.en.md 全面同步中文版（六引擎/ROADMAP/状态段，此前滞后多个版本）。
+- **ponytail 精简轮**：runSmoke 双胞胎合并（release 复用 scaffold 导出，净删 19 行）；mcp.mjs 死字段清理；test/ 目录专项审计报告（docs/notes/ponytail-test-audit.md，结论：明确性优先不去重）。
+- **dsh-buddy v0.4.2**（独立仓 `62bc68d`）：画像持久化显式 opt-in 条款（沉默≠同意）；修复 0.4.1 tarball 缺 fallback 句的问题（同步方向事故复盘）。
+- `node --test` 62/62。
 
 ## 0.1.10 (2026-08-24)
 

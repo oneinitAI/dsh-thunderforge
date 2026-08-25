@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "scaffoldedBy": "thunderforge-scaffold@0.1.0",
+  "template": "tool",
+  "scaffoldedAt": "2026-08-25T05:47:31.000Z",
+  "instrumentation": {
+    "capture": {
+      "bundle": "dsh-thunderforge/capture",
+      "indexStream": "index.jsonl",
+      "record": "NNNNNN-*.json"
+    },
+    "events": {
+      "prefix": "example-note/"
+    },
+    "smoke": {
+      "command": "npm test",
+      "runner": "node --test test/"
+    }
+  }
+}

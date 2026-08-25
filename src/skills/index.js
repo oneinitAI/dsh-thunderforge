@@ -24,6 +24,7 @@ export const LAYERS = [
   { key: 'arch', dir: 'arch-standard', enabledConfig: 'archLayer' },
   { key: 'pitfalls', dir: 'pitfalls', enabledConfig: 'pitfallsLayer' },
   { key: 'buddy', dir: 'dsh-buddy', enabledConfig: 'buddyLayer' },
+  { key: 'checklist', dir: 'plugin-checklist', enabledConfig: 'checklistLayer' },
 ]
 
 /**
