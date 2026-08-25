@@ -5,8 +5,8 @@ import { readFile, readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { dshHome } from '../profile/dshp/profile.js'
 import { initConfig } from '../capture/core.js'
-import { debuggerConfig } from '../engine-configs.js'
 import { readUserSettingsSync } from '../user-settings.js'
+import { debuggerConfig, resolveEngineConfig } from '../engine-configs.js'
 import { buildTimeline, captureRows, loadCaptureIndex, renderTimeline, summarize } from './align.js'
 import { decodeSession, reconstruct } from './session-log.js'
 
@@ -96,7 +96,10 @@ async function aggregateUsage(captureDir, rows, price) {
 }
 
 export function apply(ctx, userConfig = {}) {
-  const config = { ...readUserSettingsSync().debugger, ...userConfig }
+  const { value: config } = resolveEngineConfig(ctx, 'thunderforge-debugger', Config, userConfig, {
+    disabled: false,
+    waterfallLimit: 80,
+  })
   // 行级 config（cordis patch 整行覆盖）可调项；disabled: true 时整体不注册
   if (config.disabled === true) return
   const defaultLimit = Number.isFinite(config.waterfallLimit) ? config.waterfallLimit : 80

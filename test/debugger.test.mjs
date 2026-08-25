@@ -138,6 +138,32 @@ test('apply 接收 config：默认 limit 与禁用开关', async () => {
   assert.equal(defs2.length, 0, 'disabled:true 应跳过注册')
 })
 
+test('settings 域集成：面板值覆盖 patch base，无 settings 服务时回退', () => {
+  // S-settings：resolveEngineConfig 的三级优先（settings 用户分节 > patch base > 默认）
+  const defs = []
+  const registrations = []
+  const stored = { 'thunderforge-debugger': { waterfallLimit: 7 } }
+  const ctx = {
+    tools: { register: (d) => defs.push(d) },
+    settings: {
+      register: (ns, schema, options) => {
+        registrations.push({ ns, schema, options })
+        return { get: () => ({ ...(options?.base ?? {}), ...(stored[ns] ?? {}) }) }
+      },
+    },
+  }
+  apply(ctx, { waterfallLimit: 99 })
+  assert.equal(registrations.length, 1)
+  assert.equal(registrations[0].ns, 'thunderforge-debugger')
+  assert.equal(registrations[0].options.base.waterfallLimit, 99, 'patch 行 config 应作为 base')
+  assert.equal(defs.length, 1)
+
+  // 无 settings 服务的环境：回退到 patch + 默认
+  const defs2 = []
+  apply({ tools: { register: (d) => defs2.push(d) } }, {})
+  assert.equal(defs2.length, 1)
+})
+
 test('watch 增量快照：since_ts 之后的事件可见，未来窗口为空并带 next_since_ts', async () => {
   const { root, captureDir } = await fixture()
   const previous = process.env.DSH_HOME

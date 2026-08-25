@@ -6,7 +6,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { skillsConfig } from '../engine-configs.js'
+import { skillsConfig, resolveEngineConfig } from '../engine-configs.js'
 import { settingsPath, readUserSettingsSync, invalidateCache } from '../user-settings.js'
 import * as captureEntry from '../capture/index.js'
 import * as debuggerEntry from '../debugger/index.js'
@@ -70,8 +70,16 @@ export function loadSkillDir(dir) {
 }
 
 export function apply(ctx, userConfig = {}) {
-  // 三级合并：patch 行 config > 用户级 settings 文件 > 内置默认
-  const config = { ...readUserSettingsSync().skills, ...userConfig }
+  // 四级优先：settings 域（面板）> patch 行 config > 用户级 json > 内置默认
+  const { value: effective } = resolveEngineConfig(ctx, 'thunderforge-skills', Config, userConfig, {
+    entryLayer: true,
+    archLayer: true,
+    pitfallsLayer: true,
+    buddyLayer: true,
+    checklistLayer: true,
+    probeDelayMs: 8000,
+  })
+  const config = effective
   let registered = 0
   for (const layer of LAYERS) {
     if (config[layer.enabledConfig] === false) continue

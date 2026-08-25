@@ -13,7 +13,7 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { CaptureStore, initConfig, DEFAULTS } from './core.js'
-import { captureConfig } from '../engine-configs.js'
+import { captureConfig, resolveEngineConfig } from '../engine-configs.js'
 import { readUserSettingsSync } from '../user-settings.js'
 
 export const name = 'thunderforge-capture'
@@ -77,8 +77,9 @@ function wrapAdapter(adapter, providers, store) {
 }
 
 export function apply(ctx, userConfig = {}) {
-  // 配置三级合并：patch 行 config > 用户级 settings 文件 > 内置默认
-  const merged = { ...readUserSettingsSync().capture, ...userConfig }
+  // 四级优先：settings 域（Web 面板编辑）> patch 行 config（base）> 旧版用户级 json > 内置默认
+  const { value: effective } = resolveEngineConfig(ctx, 'thunderforge-capture', Config, userConfig, DEFAULTS)
+  const merged = { ...readUserSettingsSync().capture, ...effective }
   const config = initConfig(merged)
   const logger = typeof ctx?.logger === 'function' ? ctx.logger(name) : console
   const store = new CaptureStore(config, (err) => logger.warn?.('capture write failed:', err?.message ?? err))

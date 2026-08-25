@@ -3,6 +3,20 @@
 // 行级 cordis.patch.yml 覆盖不受影响。键与各引擎 DEFAULTS/实现一一对应。
 import z from './config-source.js'
 
+/**
+ * 解析引擎生效配置：注册 settings namespace（Web 面板表单来源）并以 scope 值为准。
+ * 优先级：面板/宿主 settings 用户分节 > patch 行 config（作为 base）> schema 默认。
+ * 宿主无 settings 服务时回退 { ...defaults, ...rowConfig }。
+ * @returns {{ value: object, scope: object | null }}
+ */
+export function resolveEngineConfig(ctx, ns, schema, rowConfig = {}, fallbackDefaults = {}) {
+  if (typeof ctx?.settings?.register !== 'function' || !schema) {
+    return { value: { ...fallbackDefaults, ...rowConfig }, scope: null }
+  }
+  const scope = ctx.settings.register(ns, schema, { base: rowConfig })
+  return { value: scope.get() ?? {}, scope }
+}
+
 /** capture 的配置 schema（与 src/capture/core.js DEFAULTS 对应）。 */
 export const captureConfig = (defaults) =>
   z

@@ -6,8 +6,8 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkRawToolContract } from '../contract/index.js'
 import { runSmoke } from '../scaffold/index.js'
-import { releaseConfig } from '../engine-configs.js'
 import { readUserSettingsSync } from '../user-settings.js'
+import { releaseConfig, resolveEngineConfig } from '../engine-configs.js'
 
 export const name = 'thunderforge-release'
 export const inject = ['tools']
@@ -98,7 +98,9 @@ async function checkChangelogVersion(root) {
 }
 
 export function apply(ctx, userConfig = {}) {
-  const config = { ...readUserSettingsSync().release, ...userConfig }
+  const { value: config } = resolveEngineConfig(ctx, 'thunderforge-release', Config, userConfig, {
+    disabled: false,
+  })
   if (config.disabled === true) return
   ctx.tools.register({
     name: 'thunderforge_release',
