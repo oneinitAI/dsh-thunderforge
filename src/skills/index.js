@@ -7,12 +7,28 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { skillsConfig } from '../engine-configs.js'
+import { settingsPath, readUserSettingsSync, invalidateCache } from '../user-settings.js'
+import * as captureEntry from '../capture/index.js'
+import * as debuggerEntry from '../debugger/index.js'
+import * as scaffoldEntry from '../scaffold/index.js'
+import * as releaseEntry from '../release/index.js'
+import * as profileEntry from '../profile/index.js'
 
 export const name = 'thunderforge-skills'
 export const inject = ['skills']
 
 // Web 设置面板配置声明（宿主无 schemastery 时为 undefined）
 export const Config = skillsConfig()
+
+// 设置端点消费的引擎清单：id → 入口模块（Config 导出）。静态导入无循环。
+const ENGINE_IDS = ['capture', 'skills', 'debugger', 'scaffold', 'release', 'profile']
+const ENGINE_CONFIG_EXPORTS = {
+  capture: captureEntry,
+  debugger: debuggerEntry,
+  scaffold: scaffoldEntry,
+  release: releaseEntry,
+  profile: profileEntry,
+}
 
 // 层开关（entryLayer/archLayer/pitfallsLayer/buddyLayer，默认全开）经 config 传入；
 // 树外插件零 harness 导入，不导出 Schemastery Config（避免 Symbol 双实例，见 CHANGELOG 0.1.5）
@@ -53,7 +69,9 @@ export function loadSkillDir(dir) {
   return { root, name, description, body }
 }
 
-export function apply(ctx, config = {}) {
+export function apply(ctx, userConfig = {}) {
+  // 三级合并：patch 行 config > 用户级 settings 文件 > 内置默认
+  const config = { ...readUserSettingsSync().skills, ...userConfig }
   let registered = 0
   for (const layer of LAYERS) {
     if (config[layer.enabledConfig] === false) continue
@@ -102,5 +120,59 @@ export function apply(ctx, config = {}) {
     }, probeDelayMs)
     probe.unref?.()
     ctx?.on?.('dispose', () => clearTimeout(probe))
+  }
+
+  // WebUI 设置端点：GET 返回六引擎 schema envelope + 当前用户级值；POST 保存到
+  // ~/.dsh/thunderforge-config.json（各引擎 apply 时合并，patch 行 config 仍最高优先）。
+  // webServer 用运行时软探测——headless preset 无该服务时静默跳过，不影响技能注册。
+  try {
+    ctx?.webServer?.register?.({
+      kind: 'exact',
+      path: '/thunderforge/settings',
+      handler: async (req, res) => {
+        if (req.method === 'GET' || req.method === 'HEAD') {
+          const engines = ENGINE_IDS.map((id) => {
+            const mod = ENGINE_CONFIG_EXPORTS[id]
+            return {
+              id,
+              schema: mod?.Config ? mod.Config.toJSON() : null,
+              value: readUserSettingsSync()[id] ?? {},
+            }
+          })
+          res.writeHead(200, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({ path: settingsPath(), engines }))
+          return
+        }
+        if (req.method === 'POST') {
+          let body = ''
+          for await (const chunk of req) body += chunk
+          try {
+            const parsed = JSON.parse(body || '{}')
+            if (!parsed.engine || !ENGINE_IDS.includes(parsed.engine) || typeof parsed.value !== 'object') {
+              res.writeHead(400, { 'content-type': 'application/json' })
+              res.end(JSON.stringify({ error: 'INVALID_BODY', hint: '需要 { engine, value } 且 engine 属于已知引擎' }))
+              return
+            }
+            const { writeFileSync, mkdirSync } = await import('node:fs')
+            const file = settingsPath()
+            mkdirSync(dirname(file), { recursive: true })
+            const current = readUserSettingsSync()
+            current[parsed.engine] = { ...current[parsed.engine], ...parsed.value }
+            writeFileSync(file, `${JSON.stringify(current, null, 2)}\n`, 'utf8')
+            invalidateCache()
+            res.writeHead(200, { 'content-type': 'application/json' })
+            res.end(JSON.stringify({ ok: true, saved: parsed.engine, hint: '重启对应应用后生效（或等待 HMR 热重载）' }))
+          } catch (err) {
+            res.writeHead(400, { 'content-type': 'application/json' })
+            res.end(JSON.stringify({ error: err.message }))
+          }
+          return
+        }
+        res.writeHead(405)
+        res.end()
+      },
+    })
+  } catch {
+    /* 端点注册失败不影响技能层 */
   }
 }

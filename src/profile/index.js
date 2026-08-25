@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { exists, listProfiles, profileDir, profileSize, readProfile, writeProfile } from './dshp/profile.js'
 import { serialize } from './dshp/portable.js'
 import { profileConfig } from '../engine-configs.js'
+import { readUserSettingsSync } from '../user-settings.js'
 
 export const name = 'thunderforge-profile'
 export const inject = ['tools']
@@ -50,7 +51,10 @@ function spawnText(command, args, cwd) {
   })
 }
 
-export function apply(ctx) {
+export function apply(ctx, userConfig = {}) {
+  // 三级合并：patch 行 config > 用户级 settings > 内置默认
+  const config = { ...readUserSettingsSync().profile, ...userConfig }
+  if (config.disabled === true) return
   ctx.tools.register({
       name: 'thunderforge_profile',
       description:

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { PLUGIN_NAME_RE, TEMPLATES, scaffoldFiles } from './templates.js'
 import { checkRawToolContract } from '../contract/index.js'
 import { scaffoldConfig } from '../engine-configs.js'
+import { readUserSettingsSync } from '../user-settings.js'
 
 // 树外插件零 harness 导入（生态惯例，见 dsh-plugin-guide）：直接用原始 JSON Schema
 // 定义注册工具，避免把 @deepseek-ai/dsh-tools 装进 profile 树造成 Symbol 双实例
@@ -63,7 +64,8 @@ export async function runSmoke(root, signal) {
   })
 }
 
-export function apply(ctx, config = {}) {
+export function apply(ctx, userConfig = {}) {
+  const config = { ...readUserSettingsSync().scaffold, ...userConfig }
   if (config.disabled === true) return
   const defaultVerify = config.verify !== false
   ctx.tools.register({

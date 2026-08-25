@@ -6,6 +6,7 @@ import { join } from 'node:path'
 import { dshHome } from '../profile/dshp/profile.js'
 import { initConfig } from '../capture/core.js'
 import { debuggerConfig } from '../engine-configs.js'
+import { readUserSettingsSync } from '../user-settings.js'
 import { buildTimeline, captureRows, loadCaptureIndex, renderTimeline, summarize } from './align.js'
 import { decodeSession, reconstruct } from './session-log.js'
 
@@ -94,7 +95,8 @@ async function aggregateUsage(captureDir, rows, price) {
   return result
 }
 
-export function apply(ctx, config = {}) {
+export function apply(ctx, userConfig = {}) {
+  const config = { ...readUserSettingsSync().debugger, ...userConfig }
   // 行级 config（cordis patch 整行覆盖）可调项；disabled: true 时整体不注册
   if (config.disabled === true) return
   const defaultLimit = Number.isFinite(config.waterfallLimit) ? config.waterfallLimit : 80
