@@ -1,32 +1,16 @@
 // ThunderForge release 插件：把项目付过学费的真机教训变成用户插件的发布前自动门禁。
 // 检查项（R5）：冒烟测试 → 工具契约 → 零依赖铁律 → 版本一致性 → 手动步骤清单。
 // 只检查不代做 publish——npm OTP 等敏感操作永远留给维护者本人。
-import { spawn } from 'node:child_process'
 import { readFile, readdir, stat } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkRawToolContract } from '../contract/index.js'
+import { runSmoke } from '../scaffold/index.js'
 
 export const name = 'thunderforge-release'
 export const inject = ['tools']
 
 const packageRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))))
-
-/** 目录里跑 node --test 冒烟（与 scaffold.runSmoke 同款链路，独立实现避免跨引擎耦合）。 */
-async function runSmoke(root, signal) {
-  return new Promise((resolvePromise) => {
-    const child = spawn(process.execPath, ['--test'], { cwd: root, signal, stdio: ['ignore', 'pipe', 'pipe'] })
-    let out = ''
-    const collect = (stream) => stream.on('data', (chunk) => {
-      out += chunk
-      if (out.length > 20_000) out = out.slice(-10_000)
-    })
-    collect(child.stdout)
-    collect(child.stderr)
-    child.on('error', (err) => resolvePromise({ ran: true, passed: false, summary: `spawn failed: ${err.message}` }))
-    child.on('close', (code) => resolvePromise({ ran: true, passed: code === 0, summary: out.trim().split('\n').slice(-3).join(' | ') }))
-  })
-}
 
 /** 动态加载插件入口，mock ctx 收集其注册的工具定义。 */
 async function collectToolDefs(entryPath) {

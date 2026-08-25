@@ -36,7 +36,8 @@ async function writeAll(root, files) {
 
 // 在骨架目录里跑 node --test（自动发现），作为生成即验证的冒烟链路。
 // 不用位置参数形式（node --test test/）：该形式在 Windows 下会被当作模块入口解析。
-async function runSmoke(root, signal) {
+// 导出供 release 引擎复用（ponytail 阶梯②：库内已有就不重写）。
+export async function runSmoke(root, signal) {
   return new Promise((resolvePromise) => {
     const child = spawn(process.execPath, ['--test'], {
       cwd: root,

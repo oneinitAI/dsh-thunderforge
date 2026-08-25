@@ -30,10 +30,7 @@ function collectTools() {
       register: (def) => defs.push({ ...def, _engine: engine }),
     },
     on: () => {},
-    effect: undefined,
     logger: () => ({ info() {}, warn() {} }),
-    llm: undefined,
-    skills: undefined,
   })
   // 各引擎按需注入服务；mock 只保证 tools 可用，其余由引擎自身降级处理
   for (const [engine, extra] of [

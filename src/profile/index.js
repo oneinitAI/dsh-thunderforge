@@ -3,8 +3,7 @@
 // create-dev-preset 为 ThunderForge 增补（仅新建 tf-dev-* 目录，绝不触碰既有 profile，
 // 遵循 dshp "写操作保护既有环境" 的设计原则）。
 import { spawn } from 'node:child_process'
-import { join } from 'node:path'
-import { dirname, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { exists, listProfiles, profileDir, profileSize, readProfile, writeProfile } from './dshp/profile.js'
 import { serialize } from './dshp/portable.js'
