@@ -126,6 +126,18 @@ test('waterfall 双数据源按时间对齐且 capture 行带文件引用', asyn
   }
 })
 
+test('apply 接收 config：默认 limit 与禁用开关', async () => {
+  // S-config：debugger 配置入口（ponytail 后补的正式化——之前 limit 硬编码 80）
+  const defs = []
+  apply({ tools: { register: (d) => defs.push(d) } }, { waterfallLimit: 5 })
+  const tool = defs[0]
+  assert.equal(typeof tool.execute, 'function')
+  // disabled: true 时工具不注册
+  const defs2 = []
+  apply({ tools: { register: (d) => defs2.push(d) } }, { disabled: true })
+  assert.equal(defs2.length, 0, 'disabled:true 应跳过注册')
+})
+
 test('watch 增量快照：since_ts 之后的事件可见，未来窗口为空并带 next_since_ts', async () => {
   const { root, captureDir } = await fixture()
   const previous = process.env.DSH_HOME

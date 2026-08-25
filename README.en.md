@@ -102,6 +102,7 @@ AI:  (thunderforge_profile) → tf-dev-demo ready
 | [PRD](./docs/PRD.md) | Phased product plan & acceptance records |
 | [RELEASE](./docs/RELEASE.md) | Release checklist & one-shot release |
 | [NETWORK-NOTES](./docs/NETWORK-NOTES.md) | Network troubleshooting manual |
+| [CONFIGURATION](./docs/CONFIGURATION.md) | Configuration guide: every config key across the six engines and buddy, override recipes |
 
 ## 🙏 Acknowledgements & Upstream Licenses (required reading)
 

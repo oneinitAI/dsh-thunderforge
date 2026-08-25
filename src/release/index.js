@@ -92,7 +92,8 @@ async function checkChangelogVersion(root) {
   return { violations }
 }
 
-export function apply(ctx) {
+export function apply(ctx, config = {}) {
+  if (config.disabled === true) return
   ctx.tools.register({
     name: 'thunderforge_release',
     description:

@@ -101,6 +101,7 @@ AI: (thunderforge_profile) → tf-dev-demo 已就绪
 | [PRD](./docs/PRD.md) | 分阶段产品计划与验收记录 |
 | [RELEASE](./docs/RELEASE.md) | 发布清单与一键发布 |
 | [NETWORK-NOTES](./docs/NETWORK-NOTES.md) | 网络问题手册（443 重置/TLS/大包/peer 警告） |
+| [CONFIGURATION](./docs/CONFIGURATION.md) | 配置指南：六引擎与 buddy 的全部配置键、覆盖方法、常见场景 |
 | [CHANGELOG](./CHANGELOG.md) | 版本变更记录（含真 bug 因果） |
 
 ## 🙏 致谢与上游协议（必读）

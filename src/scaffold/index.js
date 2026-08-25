@@ -59,7 +59,9 @@ export async function runSmoke(root, signal) {
   })
 }
 
-export function apply(ctx) {
+export function apply(ctx, config = {}) {
+  if (config.disabled === true) return
+  const defaultVerify = config.verify !== false
   ctx.tools.register({
     name: 'thunderforge_scaffold',
     description:
@@ -109,7 +111,7 @@ export function apply(ctx) {
         await writeAll(root, files)
 
         let verify = { ran: false }
-        if (args.verify !== false) {
+        if (args.verify ?? defaultVerify) {
           try {
             verify = await runSmoke(root, exec?.signal)
           } catch (err) {

@@ -90,7 +90,10 @@ async function aggregateUsage(captureDir, rows, price) {
   return result
 }
 
-export function apply(ctx) {
+export function apply(ctx, config = {}) {
+  // 行级 config（cordis patch 整行覆盖）可调项；disabled: true 时整体不注册
+  if (config.disabled === true) return
+  const defaultLimit = Number.isFinite(config.waterfallLimit) ? config.waterfallLimit : 80
   ctx.tools.register({
       name: 'thunderforge_debugger',
       description:
@@ -282,7 +285,7 @@ export function apply(ctx) {
         const timeline = buildTimeline(events, indexRows)
         return {
           file: target.file,
-          text: renderTimeline(timeline, { limit: args.limit ?? 80, offset: args.offset ?? 0 }),
+          text: renderTimeline(timeline, { limit: args.limit ?? defaultLimit, offset: args.offset ?? 0 }),
           totalRows: timeline.length,
         }
       },
