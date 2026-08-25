@@ -290,10 +290,11 @@ test('initConfig 默认目录落在 DSH 数据根（无 DSH_HOME → ~/.dsh；�
     delete process.env.DSH_HOME
     const c1 = initConfig({})
     assert.ok(c1.dir.endsWith(join('.dsh', 'thunderforge-capture')), `无 DSH_HOME 时应落 ~/.dsh/thunderforge-capture，实际 ${c1.dir}`)
-    process.env.DSH_HOME = join('X:', 'fake-home')
+    // 跨平台绝对路径（POSIX 下 'X:/x' 是相对路径，resolve 会错误拼上 cwd——CI 实测）
+    process.env.DSH_HOME = join(tmpdir(), 'fake-dsh-home')
     const c2 = initConfig({})
     assert.equal(c2.dir, join(resolve(process.env.DSH_HOME), 'thunderforge-capture'))
-    assert.ok(!c2.dir.includes(process.cwd()), '默认目录不应再依赖进程 cwd（v0.1.7 及以前是 ./.thunderforge-capture）')
+    assert.ok(!c2.dir.toLowerCase().includes(process.cwd().toLowerCase()), '默认目录不应再依赖进程 cwd（v0.1.7 及以前是 ./.thunderforge-capture）')
   } finally {
     if (prev === undefined) delete process.env.DSH_HOME
     else process.env.DSH_HOME = prev

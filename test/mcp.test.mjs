@@ -5,8 +5,10 @@ import { spawn } from 'node:child_process'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const SERVER = new URL('../mcp.mjs', import.meta.url).href.replaceAll('file:///', '').replaceAll(/\//g, '\\')
+// 跨平台路径解析（手写 href replaceAll 在 POSIX 会吃掉根斜杠——CI 实测）
+const SERVER = fileURLToPath(new URL('../mcp.mjs', import.meta.url))
 
 /** 与 stdio MCP server 完成一轮请求-响应。 */
 function rpc(child, req) {

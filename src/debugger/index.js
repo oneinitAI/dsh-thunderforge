@@ -149,14 +149,66 @@ export function apply(ctx) {
           }
         }
 
-        const target = await resolveSession(args.session, sessions)
-        if (!target) {
-          return { error: 'SESSION_NOT_FOUND', hint: '先用 op=sessions 列出可用会话' }
-        }
-        const { header, events } = decodeSession(target.file)
-        const turns = reconstruct(events)
+        // capture 目录先行加载：browse/diff/成本聚合只消费 capture，与会话存在无关
+        // （CI runner 的 ~/.dsh/sessions 为空——这三个 op 曾因此被 SESSION_NOT_FOUND 误杀）
         const captureDir = args.capture_dir ?? initConfig({}).dir
         const { rows: indexRows, corrupt } = await loadCaptureIndex(captureDir)
+
+        // 表格化浏览 capture 记录（结构化 rows 而非纯文本，便于二次处理）
+        if (args.op === 'browse') {
+          let rows = indexRows
+          if (args.filter?.ok !== undefined) rows = rows.filter((row) => row.ok === args.filter.ok)
+          if (args.filter?.provider) rows = rows.filter((row) => row.provider === args.filter.provider)
+          const total = rows.length
+          const limit = args.limit ?? 80
+          const offset = args.offset ?? 0
+          return {
+            capture_dir: captureDir,
+            total,
+            offset,
+            rows: rows.slice(offset, offset + limit).map((row) => ({
+              seq: row.seq,
+              ts: row.ts,
+              provider: row.provider,
+              model: row.model,
+              ok: row.ok,
+              durationMs: row.durationMs,
+              file: row.file,
+            })),
+          }
+        }
+
+        // 对比两个 capture 载荷：叶子级差异 + 相同顶层键（回归排查"升级后行为变了"）
+        if (args.op === 'diff') {
+          if (!args.a || !args.b) {
+            return { error: 'MISSING_FILES', hint: 'diff 需要提供 a 与 b 两个载荷文件名（capture 目录内）' }
+          }
+          const payloadA = await readCapturePayload(captureDir, args.a)
+          const payloadB = await readCapturePayload(captureDir, args.b)
+          if (!payloadA || !payloadB) {
+            return { error: 'PAYLOAD_NOT_FOUND', a: payloadA ? args.a : args.a, missing: payloadA ? args.b : args.a }
+          }
+          const differences = diffLeaves(payloadA, payloadB).slice(0, 200)
+          const topA = new Set(Object.keys(payloadA))
+          const similarities = [...Object.keys(payloadB)].filter((key) => topA.has(key))
+          return { a: args.a, b: args.b, differences, differenceCount: diffLeaves(payloadA, payloadB).length, similarities }
+        }
+
+        // 会话依赖的操作从这里开始；summary 在「默认 latest 且无任何会话」时容忍缺失
+        // （仅输出 capture 侧统计），但显式指定的 session 找不到仍然报错
+        const target = await resolveSession(args.session, sessions)
+        if (!target && (args.op !== 'summary' || args.session)) {
+          return { error: 'SESSION_NOT_FOUND', hint: '先用 op=sessions 列出可用会话' }
+        }
+        let header = null
+        let events = []
+        let turns = []
+        if (target) {
+          const decoded = decodeSession(target.file)
+          header = decoded.header
+          events = decoded.events
+          turns = reconstruct(events)
+        }
 
         if (args.op === 'summary') {
           const summary = summarize(header, events, turns, { rows: indexRows, corrupt })
@@ -166,7 +218,7 @@ export function apply(ctx) {
           const price = args.price_usd_per_m
           const agg = await aggregateUsage(captureDir, indexRows, price)
           Object.assign(summary.capture, agg)
-          return { file: target.file, ...summary }
+          return { file: target?.file ?? null, ...summary }
         }
 
         // 表格化浏览 capture 记录（结构化 rows 而非纯文本，便于二次处理）
