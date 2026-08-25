@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 (2026-08-25)
+
+- **六引擎行级配置正式化**：debugger/scaffold/release 新增 `apply(ctx, config)` 支持——`disabled`（整体不注册）、`waterfallLimit`（debugger 默认行数）、`verify`（scaffold 生成后冒烟默认值）；capture/skills 的既有配置键一并文档化。
+- **新增 docs/CONFIGURATION.md**：全部配置键速查表 + `cordis.patch.yml` 覆盖方法（真机验证：重述整行 → dump-config 显示 "patched by" → config 注入 apply）+ 常见场景配方（只留 scaffold+debugger / 调试 capture 自身）。README 双语加链接。
+- **CI 修复（三个环境依赖测试 bug，自 fddbdcb 起 ubuntu/windows 全矩阵挂红）**：browse/diff/summary 曾被排在会话解析之后——全新 runner 无 `~/.dsh/sessions` 时被 SESSION_NOT_FOUND 误杀；initConfig 测试用 `'X:/fake-home'` 在 POSIX 是相对路径；mcp.test 手写 file URL 转换吃掉 Linux 根斜杠。修复后 `DSH_HOME=<空目录>` 本地复现法纳入验证流程（空/满双环境 65→66/66）。
+
 ## 0.2.0 (2026-08-24)
 
 - **第五知识层：发布清单技能（dsh-plugin-checklist）**——用户提到"发布/上架/分享插件"时触发，引导 agent 走 `thunderforge_release` 门禁流程并交接手动步骤；含翻车排查表（boot 报错/静默失效/publish 被拒）。evals train 12 / validation 6 按 agentskills.io 双集规范。LAYERS 现为五层。
