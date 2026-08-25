@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { zstdCompressSync } from 'node:zlib'
-import { apply, findSessions, name as pluginName } from '../src/debugger/index.js'
+import { apply, findSessions, name as pluginName, Config } from '../src/debugger/index.js'
 import { decodeSession } from '../src/debugger/session-log.js'
 
 // 合成会话（纯 JSONL——decodeSession 原生支持非 zstd 明文）
@@ -139,24 +139,35 @@ test('apply 接收 config：默认 limit 与禁用开关', async () => {
 })
 
 test('settings 域集成：面板值覆盖 patch base，无 settings 服务时回退', () => {
-  // S-settings：resolveEngineConfig 的三级优先（settings 用户分节 > patch base > 默认）
+  // S-settings：三级优先（settings 用户分节 > patch base > 默认）。
+  // 注意：宿主无 schemastery 时 Config 为 undefined（零依赖回退），此时跳过注册直接用 patch+默认。
+  const hasSchema = Config !== undefined
+
   const defs = []
   const registrations = []
   const stored = { 'thunderforge-debugger': { waterfallLimit: 7 } }
   const ctx = {
     tools: { register: (d) => defs.push(d) },
-    settings: {
-      register: (ns, schema, options) => {
-        registrations.push({ ns, schema, options })
-        return { get: () => ({ ...(options?.base ?? {}), ...(stored[ns] ?? {}) }) }
-      },
-    },
+    ...(hasSchema
+      ? {
+          settings: {
+            register: (ns, schema, options) => {
+              registrations.push({ ns, schema, options })
+              return { get: () => ({ ...(options?.base ?? {}), ...(stored[ns] ?? {}) }) }
+            },
+          },
+        }
+      : {}),
   }
   apply(ctx, { waterfallLimit: 99 })
-  assert.equal(registrations.length, 1)
-  assert.equal(registrations[0].ns, 'thunderforge-debugger')
-  assert.equal(registrations[0].options.base.waterfallLimit, 99, 'patch 行 config 应作为 base')
-  assert.equal(defs.length, 1)
+  if (hasSchema) {
+    assert.equal(registrations.length, 1, '有 schemastery 时应注册 settings namespace')
+    assert.equal(registrations[0].ns, 'thunderforge-debugger')
+    assert.equal(registrations[0].options.base.waterfallLimit, 99, 'patch 行 config 应作为 base')
+  } else {
+    assert.equal(defs.length, 1, '零依赖回退：工具仍应注册')
+    assert.equal(typeof defs[0].execute, 'function')
+  }
 
   // 无 settings 服务的环境：回退到 patch + 默认
   const defs2 = []
