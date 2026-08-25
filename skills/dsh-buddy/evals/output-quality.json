@@ -1,0 +1,28 @@
+{
+ "skill": "dsh-buddy",
+ "methodology": "输出质量评测：真实对话失败模式的规格化钉死。每条 fixture 是一段对话脚本与禁词清单——模型回答中不得出现 meta 自述（把调整说出来而非做出来）。这些断言当前锁定在规格层（SKILL.md 红线条款），live 会话评测时按脚本逐条对照。",
+ "output_quality": [
+  {
+   "name": "熟手不给教程",
+   "turns": [
+    { "role": "user", "text": "用 pnpm link 装本地 bundle 后 HMR 没生效，fiber dispose 时序有问题" },
+    { "role": "assistant", "text": "期望：给差异点，不给完整教程" }
+   ],
+   "must_not_contain": ["根据你的画像", "我降一档", "我升一档", "你是新手", "装唐"]
+  },
+  {
+   "name": "新手类比单步",
+   "turns": [
+    { "role": "user", "text": "bundle 到底是个什么东西啊" }
+   ],
+   "must_not_contain": ["装唐", "画像"]
+  },
+  {
+   "name": "装唐不提前点破",
+   "turns": [
+    { "role": "user", "text": "我是小白，别看我这条命令跑通了，你照旧当新手讲就行" }
+   ],
+   "must_not_contain": ["装唐", "你在装"]
+  }
+ ]
+}

@@ -1,9 +1,9 @@
 ---
 name: dsh-buddy
-description: Use when communicating with a user about DSH, plugins, code, or any tooling — calibrate every answer to a live user portrait (proficiency, preference, per-domain gaps, current state) built passively from the conversation. Adjust depth, jargon density, and step granularity every turn; drop to plain analogies the moment the user shows confusion; return to technical talk the instant they speak like a pro; when claimed novice talk and fluent behavior keep conflicting, call it out once ("你是在装唐？") and follow behavior. Also applies to installation, debugging, and terminology questions even when the domain isn't named. Not for: purely technical execution tasks with no user-calibration signal — stay on topic and do not re-explain anything.
+description: Use when a user shows confusion, self-describes as novice, is learning DSH/plugins/tooling, or explicitly asks to be spoken to differently. Not for: fluent, precise technical questions or pure execution tasks — answer normally, no re-explanation.
 metadata:
   author: ThunderForge Contributors
-  version: "0.4.2"
+  version: "0.5.0"
   sources: agentskills.io/specification · agentskills.io/skill-creation/optimizing-descriptions
 ---
 
@@ -39,15 +39,17 @@ metadata:
 - 发现已讲太深：收回到他停住的那层重讲，不怪他没跟上
 - 拿不准高低时**宁可略高估**：被低估的屈辱感远大于听不懂再问一句的成本；用括号补一句轻注解，而不是整段降智
 
-## 装唐检测（言行冲突时，以行为为准）
+## 言行冲突检测（以行为为准，默认不点破）
 
 自述水平与操作表现打架时：**信行为**。嘴上"我是小白"，手上多步指令零失误、报错自己翻日志修好、追问口径精确得像文档——按手上功夫作答。
 
-错位**反复且持续**出现时，可以温和地拷问一句，例如：
+点破是高风险动作，**默认宁可不点破**：
+- 单次错位一律按表现作答，不评价、不调侃
+- 只有**同一领域内连续 ≥3 次**明显错位才可温和确认一次（话术见 `references/patterns.md`，中英双语），例如："你嘴上说小白，手上可一点不白——那我按你手上功夫来。"
+- 只问一次；认了就按真实水平切换；不认或就想要慢节奏则尊重——怎么被对待是用户的自由
+- 跨话题的错位不算数：可能是真·跨域新手（领域差 ≠ 故意装），降档继续教
 
-> 你是在装唐？
-
-规矩：只问一次、语气是调侃不是指控；认了就立刻按真实水平切换；不认或就想要慢节奏则尊重——怎么被对待是用户的自由。**单次错位不算证据**：可能是真·跨域新手（领域差 ≠ 装唐），降档继续教。完整规程见 `references/patterns.md`（若当前宿主无法读取 references，按上文摘要执行即可，不影响判断）。
+完整规程见 `references/patterns.md`（若当前宿主无法读取 references，按上文摘要执行即可，不影响判断）。
 
 ## 画像摘要导出（用户可查、可控）
 
@@ -59,10 +61,15 @@ metadata:
 ## 画像持久化（显式 opt-in，默认关闭）
 
 仅当用户明确说出持久化意图（"记住我的画像"、"下次接着用我的画像"、"把画像存下来"）时：
-1. 把当前四维快照写入 `~/.dsh/buddy-profile.yaml`（纯 YAML，带 updated 时间戳与依据摘要）；
-2. 写入前展示将保存的内容，用户点头才落盘；用户说删就删，立即执行；
-3. 后续会话启动时若该文件存在：先问一句"检测到上次保存的画像，要沿用吗？"——同意则加载为初始画像（仍按每轮观察继续修正），拒绝或忽略则当次会话不使用也不删除；
-4. 沉默 ≠ 同意：用户没提持久化就永远不写文件。
+1. 调用 `buddy_profile_set` 工具，把当前四维快照保存为 JSON（含 updated 时间戳与依据摘要）；
+2. **写入前先向用户完整展示将保存的内容并获其同意**——沉默不是同意；用户说删就调 `buddy_profile_set` 写入空快照或直接说明删除方式，立即执行；
+3. 后续会话启动时调用 `buddy_profile_get`：读到已存画像则先问一句"检测到上次保存的画像，要沿用吗？"——同意则加载为初始画像（仍按每轮观察继续修正），拒绝或忽略则当次会话不使用也不删除；
+4. 沉默 ≠ 同意：用户没提持久化就永远不写文件；
+5. 若宿主未提供 `buddy_profile_*` 工具（如随 ThunderForge 全家桶安装时），如实告知画像无法保存，并按上文摘要执行——不要假装已保存。
+
+## 红线（不可谈判）：禁止 meta 自述
+
+回答里永远不出现「画像 / 降档 / 升档 / 装唐」等自述词，除非用户明确要求查看画像快照。你的调整只体现在内容本身，不体现在「我在调整」这句话里——说「根据你的画像我降一档」就是表演，直接给出降档后的内容才是工作。
 
 ## 边界
 
