@@ -6,15 +6,20 @@ import z from './config-source.js'
 /**
  * 解析引擎生效配置：注册 settings namespace（Web 面板表单来源）并以 scope 值为准。
  * 优先级：面板/宿主 settings 用户分节 > patch 行 config（作为 base）> schema 默认。
- * 宿主无 settings 服务时回退 { ...defaults, ...rowConfig }。
+ * 注意：cordis 的 ctx 是严格 Proxy——访问未在 inject 声明的服务属性会直接 throw
+ * （真机 boot 实证），因此访问必须整体包 try/catch；宿主无 settings 服务时回退。
  * @returns {{ value: object, scope: object | null }}
  */
 export function resolveEngineConfig(ctx, ns, schema, rowConfig = {}, fallbackDefaults = {}) {
-  if (typeof ctx?.settings?.register !== 'function' || !schema) {
-    return { value: { ...fallbackDefaults, ...rowConfig }, scope: null }
+  const fallback = { value: { ...fallbackDefaults, ...rowConfig }, scope: null }
+  try {
+    if (typeof ctx?.settings?.register !== 'function' || !schema) return fallback
+    const scope = ctx.settings.register(ns, schema, { base: rowConfig })
+    return { value: scope.get() ?? {}, scope }
+  } catch {
+    // 未注入 settings / 注册冲突等：静默回退到 patch+默认
+    return fallback
   }
-  const scope = ctx.settings.register(ns, schema, { base: rowConfig })
-  return { value: scope.get() ?? {}, scope }
 }
 
 /** capture 的配置 schema（与 src/capture/core.js DEFAULTS 对应）。 */

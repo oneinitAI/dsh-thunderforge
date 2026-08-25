@@ -175,6 +175,24 @@ test('settings 域集成：面板值覆盖 patch base，无 settings 服务时�
   assert.equal(defs2.length, 1)
 })
 
+test('cordis 严格 Proxy：访问未注入的 settings 属性 throw 时必须回退而非炸 boot', () => {
+  // 回归锚点（真机 boot 实证）：cordis 的 ctx 是严格 Proxy，
+  // ctx.settings 在未 inject ['settings'] 时 get 直接抛
+  // "cannot get property "settings" without inject"——可选链防不住 proxy get 拦截。
+  const strictCtx = new Proxy(
+    { tools: { register: (d) => defsStrict.push(d) } },
+    {
+      get(target, prop) {
+        if (prop in target) return target[prop]
+        throw new Error(`cannot get property "${String(prop)}" without inject`)
+      },
+    },
+  )
+  const defsStrict = []
+  assert.doesNotThrow(() => apply(strictCtx, {}), '未注入 settings 必须静默回退')
+  assert.equal(defsStrict.length, 1, '回退后工具仍应注册')
+})
+
 test('watch 增量快照：since_ts 之后的事件可见，未来窗口为空并带 next_since_ts', async () => {
   const { root, captureDir } = await fixture()
   const previous = process.env.DSH_HOME
