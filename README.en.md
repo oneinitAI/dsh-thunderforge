@@ -114,7 +114,7 @@ ThunderForge stands on the shoulders of community giants and **strictly respects
 | [dsh-plugin-dev-skills](https://github.com/zimodzh/dsh-plugin-dev-skills) | MIT | **Vendored verbatim** → `skills/arch-standard/` (upstream license text included) |
 | [dsh-plugin-guide](https://github.com/PerryLink/dsh-plugin-guide) | Apache-2.0 | **Vendored verbatim** → `skills/pitfalls/` (license & NOTICE retained) |
 | [dsh-replay](https://github.com/zoahdev/dsh-replay) | MIT | **Vendored verbatim** → `src/debugger/session-log.js` (provenance header) |
-| [dshp](https://github.com/asdf17128/dshp) | MIT | **Vendored verbatim** → `src/profile/dshp/` (provenance header) |
+| [dshp](https://github.com/asdf17128/dshp) | MIT | **Absorbed** into first-party modules (`src/profile/store.js` etc.; MIT attribution kept in file headers and the ledger) |
 | [dsh-trajectory-debug](https://github.com/devmom/dsh-trajectory-debug) | MIT | Concept reference (no code vendored), recorded in the ledger |
 
 - All vendored files are **unmodified** — only a provenance header is prepended; every upstream license text ships with the package (see [`LICENSES/`](./LICENSES)).

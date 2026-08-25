@@ -1,13 +1,12 @@
 // ThunderForge profile 插件：profile 管理模型工具 + dev preset 生成器。
-// list/export 复用 vendored dshp（asdf17128/dshp，MIT）的实现；
-// create-dev-preset 为 ThunderForge 增补（仅新建 tf-dev-* 目录，绝不触碰既有 profile，
-// 遵循 dshp "写操作保护既有环境" 的设计原则）。
+// list/export 使用本仓自有的 store 实现（实现沿革见 src/profile/store.js 头注）；
+// create-dev-preset 遵循"写操作保护既有环境"的设计原则——仅新建 tf-dev-* 目录，
+// 绝不触碰既有 profile。
 import { spawn } from 'node:child_process'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { exists, listProfiles, profileDir, profileSize, readProfile, writeProfile } from './dshp/profile.js'
-import { serialize } from './dshp/portable.js'
-import { readUserSettingsSync } from '../user-settings.js'
+import { exists, listProfiles, profileDir, profileSize, readProfile, writeProfile } from './store.js'
+import { serialize } from './portable-format.js'
 import { profileConfig, resolveEngineConfig } from '../engine-configs.js'
 
 export const name = 'thunderforge-profile'

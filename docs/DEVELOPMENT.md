@@ -69,7 +69,7 @@ ctx.tools.register({
 ### 2.4 清洁室与 vendor 原则
 
 - `src/capture/` 是**清洁室实现**：只依据官方 LLM 适配器协议编写，未使用无许可证上游 `dsh-payload-capture` 的任何代码（该组件被明确排除，见 `LICENSES/README.md`）
-- vendor 引入（`src/debugger/session-log.js` 来自 dsh-replay、`src/profile/dshp/` 来自 dshp、`skills/arch-standard`、`skills/pitfalls`、`skills/dsh-buddy`）：**未修改实现，仅文件头前置来源声明**；许可证原文进 `LICENSES/`
+- vendor 引入（`src/debugger/session-log.js` 来自 dsh-replay、`skills/arch-standard`、`skills/pitfalls`、`skills/dsh-buddy`）：**未修改实现，仅文件头前置来源声明**；许可证原文进 `LICENSES/`。dshp 的 profile 实现已吸收并入 `src/profile/store.js` + `src/profile/portable-format.js`（MIT 归属保留于文件头）
 - **红线**：不引入/不参照无许可证（All Rights Reserved）的代码
 
 ## 3. 本地开发环境
@@ -100,7 +100,8 @@ src/
 │   ├── align.js       # 双数据源对齐（session 事件 × capture index.jsonl）
 │   └── index.js       # thunderforge_debugger 工具（sessions/summary/waterfall）
 └── profile/
-    ├── dshp/          # vendor: dshp（profile 读写 + 可移植序列化）
+    ├── store.js           # profile 读写（dshp 实现已吸收并入，见文件头沿革）
+    ├── portable-format.js # 可移植 profile 序列化（同上沿革）
     └── index.js       # thunderforge_profile 工具（list/export/create-dev-preset/verify）
 
 skills/                  # 四层知识库内容

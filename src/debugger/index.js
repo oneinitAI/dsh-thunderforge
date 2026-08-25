@@ -3,7 +3,7 @@
 // 概念参考 dsh-trajectory-debug（MIT，未 vendor 其 Web UI 实现，见 LICENSES 台账）。
 import { readFile, readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
-import { dshHome } from '../profile/dshp/profile.js'
+import { dshHome } from '../dsh-home.js'
 import { initConfig } from '../capture/core.js'
 import { readUserSettingsSync } from '../user-settings.js'
 import { debuggerConfig, resolveEngineConfig } from '../engine-configs.js'

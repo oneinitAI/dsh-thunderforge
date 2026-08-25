@@ -56,7 +56,7 @@ ThunderForge 是 DeepSeek Harness（DSH）的**一站式插件开发套件**—�
 ### 3.4 清洁室与 vendor 规则
 
 - `src/capture/` 清洁室自研，仅依据官方 LLM 适配器协议编写
-- vendor 文件（`src/debugger/session-log.js`←dsh-replay, `src/profile/dshp/`←dshp, `skills/arch-standard/`←dsh-plugin-dev-skills, `skills/pitfalls/`←dsh-plugin-guide, `skills/dsh-buddy/`←oneinitAI/dsh-buddy）**仅文件头前置来源声明，未修改实现**
+- vendor 文件（`src/debugger/session-log.js`←dsh-replay, `skills/arch-standard/`←dsh-plugin-dev-skills, `skills/pitfalls/`←dsh-plugin-guide, `skills/dsh-buddy/`←oneinitAI/dsh-buddy）**仅文件头前置来源声明，未修改实现**
 - **红线**：不引入/不参照无许可证代码
 - 所有上游协议原文进入 `LICENSES/` 台账
 
@@ -113,7 +113,7 @@ node scripts/release.mjs patch --dry-run # 只看计划
 | dsh-plugin-dev-skills | [zimodzh/dsh-plugin-dev-skills](https://github.com/zimodzh/dsh-plugin-dev-skills) | MIT，原样 vendor→`skills/arch-standard/` |
 | dsh-plugin-guide | [PerryLink/dsh-plugin-guide](https://github.com/PerryLink/dsh-plugin-guide) | Apache-2.0，原样 vendor→`skills/pitfalls/`（含 NOTICE） |
 | dsh-replay | [zoahdev/dsh-replay](https://github.com/zoahdev/dsh-replay) | MIT，引擎文件 vendor→`src/debugger/session-log.js` |
-| dshp | [asdf17128/dshp](https://github.com/asdf17128/dshp) | MIT，核心 vendor→`src/profile/dshp/` |
+| dshp | [asdf17128/dshp](https://github.com/asdf17128/dshp) | MIT，实现已吸收并入→`src/profile/store.js` 等 |
 
 ## 八、工具服务状态
 

@@ -114,7 +114,7 @@ ThunderForge 站在社区巨人的肩膀上，**尊重并严格遵守每一个�
 | [dsh-plugin-dev-skills](https://github.com/zimodzh/dsh-plugin-dev-skills) | MIT | **原样 vendor** → `skills/arch-standard/`（含其协议原文） |
 | [dsh-plugin-guide](https://github.com/PerryLink/dsh-plugin-guide) | Apache-2.0 | **原样 vendor** → `skills/pitfalls/`（协议与 NOTICE 原文保留） |
 | [dsh-replay](https://github.com/zoahdev/dsh-replay) | MIT | **原样 vendor** → `src/debugger/session-log.js`（文件头标注来源） |
-| [dshp](https://github.com/asdf17128/dshp) | MIT | **原样 vendor** → `src/profile/dshp/`（文件头标注来源） |
+| [dshp](https://github.com/asdf17128/dshp) | MIT | **已吸收并入** → `src/profile/store.js` 等自有模块（MIT 归属保留于文件头与台账） |
 | [dsh-trajectory-debug](https://github.com/devmom/dsh-trajectory-debug) | MIT | 概念参考（未 vendor 代码），台账已记 |
 
 - 全部 vendor 文件**未修改实现**，仅前置来源声明头；各上游许可证原文随包分发（见 [`LICENSES/`](./LICENSES)）
